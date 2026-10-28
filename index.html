@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>පෝරා පොයින්ට්ස් | Pora Points - University Roast & Aura Counter</title>
+  <meta name="description" content="The ultimate University Roast & Aura scoreboard! When someone gets roasted, reduce their marks (-1). Track who got roasted the most in your batch!">
+  <meta name="theme-color" content="#0d0f18">
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Noto+Sans+Sinhala:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Background decorative glows -->
+  <div class="bg-glow glow-1"></div>
+  <div class="bg-glow glow-2"></div>
+
+  <!-- Main Container -->
+  <div class="app-container">
+
+    <!-- Header Section -->
+    <header class="app-header">
+      <div class="header-main">
+        <div class="brand">
+          <div class="brand-icon">🔥</div>
+          <div>
+            <h1 class="brand-title">
+              <span class="sinhala-title">පෝරා පොයින්ට්ස්</span>
+              <span class="english-title">PORA & AURA POINTS</span>
+            </h1>
+            <p class="brand-tagline" data-i18n="tagline">යාලුවෙක් පෝර කෑවොත් ලකුණු අඩු කරන්න (-1) | University Roast Scoreboard</p>
+          </div>
+        </div>
+
+        <!-- Header Controls -->
+        <div class="header-controls">
+          <button id="langToggleBtn" class="control-btn" title="භාෂාව වෙනස් කරන්න / Change Language">
+            <span class="btn-icon">🌐</span>
+            <span id="langLabel">English</span>
+          </button>
+          <button id="soundToggleBtn" class="control-btn" title="ශබ්දය සක්‍රීය / අක්‍රීය කරන්න">
+            <span id="soundIcon" class="btn-icon">🔊</span>
+          </button>
+          <button id="syncModalBtn" class="control-btn" title="දත්ත සුරැකීම සහ බෙදාගැනීම">
+            <span class="btn-icon">🔄</span>
+            <span class="btn-text-desktop" data-i18n="sync">Sync</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Action Bar -->
+      <div class="action-bar">
+        <button id="addFriendBtn" class="btn btn-primary">
+          <span class="btn-icon">➕</span>
+          <span data-i18n="addFriend">මිතුරෙක් එකතු කරන්න</span>
+        </button>
+        <button id="openRoastLogBtn" class="btn btn-secondary">
+          <span class="btn-icon">⚡</span>
+          <span data-i18n="roastLog">පෝර පුවත්පත (Feed)</span>
+          <span id="roastCountBadge" class="badge">0</span>
+        </button>
+        <button id="shareWhatsappBtn" class="btn btn-accent">
+          <span class="btn-icon">💬</span>
+          <span data-i18n="shareScorecard">WhatsApp Share</span>
+        </button>
+        <button id="exportImageBtn" class="btn btn-dark">
+          <span class="btn-icon">📸</span>
+          <span data-i18n="statusCard">Story Card</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Highlight Showcase (Top Roast Victim vs Top Aura King) -->
+    <section id="podiumSection" class="podium-section hidden">
+      <div class="section-header">
+        <span class="section-tag" data-i18n="podiumTag">⚡ සජීවී තත්ත්වය</span>
+        <h2 class="section-title" data-i18n="podiumTitle">පෝර කාපු අය සහ අවුරා රජවරු</h2>
+      </div>
+      <div class="podium-grid">
+        <!-- 2nd Most Roasted -->
+        <div class="podium-card rank-victim-sub" id="podiumVictim2">
+          <div class="podium-badge">🥈 #2 Roasted</div>
+          <div class="podium-avatar">🤡</div>
+          <div class="podium-name">---</div>
+          <div class="podium-subtitle" data-i18n="victim2Sub">චීෆ් පෝරියා</div>
+          <div class="podium-points text-negative">0 Marks</div>
+        </div>
+
+        <!-- #1 Most Roasted (Supreme Roast Victim - Lowest Marks!) -->
+        <div class="podium-card rank-victim-1" id="podiumVictim1">
+          <div class="burn-icon">💀</div>
+          <div class="podium-badge badge-burn">🔥 #1 පෝර රජා</div>
+          <div class="podium-avatar burn-glow">🤡</div>
+          <div class="podium-name">---</div>
+          <div class="podium-subtitle" data-i18n="victim1Sub">වැඩිපුරම පෝර කාපු කෙනා</div>
+          <div class="podium-points text-burn">0 Marks</div>
+        </div>
+
+        <!-- Top Aura (Highest Marks - Least Roasted!) -->
+        <div class="podium-card rank-aura-king" id="podiumAuraKing">
+          <div class="crown-icon">👑</div>
+          <div class="podium-badge badge-aura">🛡️ Aura Master</div>
+          <div class="podium-avatar aura-glow">👑</div>
+          <div class="podium-name">---</div>
+          <div class="podium-subtitle" data-i18n="auraKingSub">ලකුණු වැඩිම (අඩුම පෝර)</div>
+          <div class="podium-points text-aura">0 Marks</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Leaderboard Section -->
+    <main class="leaderboard-section">
+      <div class="controls-row">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" placeholder="මිතුරන් සොයන්න..." data-i18n-placeholder="searchPlaceholder">
+        </div>
+        <div class="filter-group">
+          <button class="filter-chip active" data-sort="most_roasted" id="sortMostRoastedBtn" data-i18n="sortMostRoasted">💀 වැඩිපුරම පෝර කාපු (අඩු ලකුණු)</button>
+          <button class="filter-chip" data-sort="highest_aura" id="sortHighestAuraBtn" data-i18n="sortHighestAura">👑 වැඩිම ලකුණු (Aura High)</button>
+          <button class="filter-chip" data-sort="recent" id="sortRecentBtn" data-i18n="sortRecent">⏱️ අලුත්ම</button>
+        </div>
+      </div>
+
+      <!-- Friends Cards Container -->
+      <div id="friendsList" class="friends-list">
+        <!-- Dynamically injected cards -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="emptyState" class="empty-state">
+        <div class="empty-icon">🎯</div>
+        <h3 data-i18n="emptyTitle">තාම කිසිම කෙනෙක් පෝර කාලා නෑ!</h3>
+        <p data-i18n="emptySubtitle">ඔබේ කැන්ටිමේ හෝ බැච් එකේ යාලුවන්ව එකතු කර ලකුණු සටහන් කිරීම අරඹන්න.</p>
+        <button id="emptyAddBtn" class="btn btn-primary">
+          <span class="btn-icon">➕</span>
+          <span data-i18n="addFirstFriend">පළමු මිතුරා එකතු කරන්න</span>
+        </button>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>Made with 🔥 for University Legends | <span class="brand-accent">Pora Points v1.0</span></p>
+      <p class="footer-subtext" data-i18n="footerText">යාලුවන්ගේ හිත් රිදවීමකින් තොරව විනෝදය සඳහා පමණි!</p>
+    </footer>
+
+  </div>
+
+  <!-- Modal 1: Add / Edit Friend Modal -->
+  <div id="friendModal" class="modal-overlay hidden">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="friendModalTitle" data-i18n="modalAddTitle">නව මිතුරෙකු එකතු කරන්න</h3>
+        <button class="close-modal-btn" data-close="friendModal">✕</button>
+      </div>
+      <form id="friendForm" class="modal-body">
+        <input type="hidden" id="editFriendId">
+        
+        <div class="form-group">
+          <label for="friendNameInput" data-i18n="labelName">නම (Name) *</label>
+          <input type="text" id="friendNameInput" required placeholder="උදා: කසුන්, නිමල්, චතුර, Kavi..." maxlength="25">
+        </div>
+
+        <div class="form-group">
+          <label for="friendNicknameInput" data-i18n="labelNickname">අන්වර්ථ නාමය / පීඨය / බැච් එක (Optional)</label>
+          <input type="text" id="friendNicknameInput" placeholder="උදා: බෝතලේ, FOT, Eng, CS, සිරා..." maxlength="25">
+        </div>
+
+        <div class="form-group">
+          <label data-i18n="labelAvatar">Avatar එකක් තෝරන්න</label>
+          <div class="avatar-picker" id="avatarPicker">
+            <button type="button" class="avatar-option selected" data-avatar="🤡">🤡</button>
+            <button type="button" class="avatar-option" data-avatar="🗿">🗿</button>
+            <button type="button" class="avatar-option" data-avatar="💀">💀</button>
+            <button type="button" class="avatar-option" data-avatar="🐒">🐒</button>
+            <button type="button" class="avatar-option" data-avatar="🤓">🤓</button>
+            <button type="button" class="avatar-option" data-avatar="🐸">🐸</button>
+            <button type="button" class="avatar-option" data-avatar="👑">👑</button>
+            <button type="button" class="avatar-option" data-avatar="🕶️">🕶️</button>
+            <button type="button" class="avatar-option" data-avatar="🦁">🦁</button>
+            <button type="button" class="avatar-option" data-avatar="🍕">🍕</button>
+            <button type="button" class="avatar-option" data-avatar="💩">💩</button>
+            <button type="button" class="avatar-option" data-avatar="👻">👻</button>
+          </div>
+          <input type="hidden" id="selectedAvatar" value="🤡">
+        </div>
+
+        <div class="form-group" id="startingPointsGroup">
+          <label for="startingPointsInput" data-i18n="labelInitialPoints">ආරම්භක ලකුණු (Starting Marks)</label>
+          <div class="helper-text" data-i18n="helperInitialPoints">සාමාන්‍යයෙන් 0 හෝ 100 කින් පටන් ගත හැක. පෝර කන විට ලකුණු අඩු වේ!</div>
+          <input type="number" id="startingPointsInput" value="10" min="-999" max="999">
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" data-close="friendModal" data-i18n="btnCancel">අවලංගු කරන්න</button>
+          <button type="submit" class="btn btn-primary" id="saveFriendBtn" data-i18n="btnSave">සුරකින්න</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Log Roast Reason Modal -->
+  <div id="roastReasonModal" class="modal-overlay hidden">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 data-i18n="modalRoastTitle">🔥 රෝස්ට් කළ හේතුව සටහන් කරන්න</h3>
+        <button class="close-modal-btn" data-close="roastReasonModal">✕</button>
+      </div>
+      <form id="roastReasonForm" class="modal-body">
+        <input type="hidden" id="roastVictimId">
+        <div class="roast-target-preview">
+          <span class="target-avatar" id="roastVictimAvatar">🤡</span>
+          <div>
+            <div class="target-name" id="roastVictimName">Friend Name</div>
+            <div class="target-sub" data-i18n="roastDeductSubtitle">පෝර කෑම නිසා ලකුණු අඩු කෙරේ (- Marks)</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label data-i18n="quickReasons">නිතර වන සිදුවීම් (Quick Pick):</label>
+          <div class="quick-reasons" id="quickReasonsList">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="customReasonInput" data-i18n="customReason">සිදුවූ සැබෑ සිද්ධිය (Custom Roast):</label>
+          <textarea id="customReasonInput" rows="2" placeholder="උදා: Canteen එකේ තේ එක හලාගෙන බැනුම් ඇහුවා..." maxlength="120"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label data-i18n="marksToDeduct">අඩු කරන ලකුණු ප්‍රමාණය (Marks to Deduct):</label>
+          <div class="points-selector">
+            <label class="point-radio">
+              <input type="radio" name="roastPts" value="1" checked>
+              <span>-1 (සාමාන්‍ය පෝර)</span>
+            </label>
+            <label class="point-radio">
+              <input type="radio" name="roastPts" value="2">
+              <span>-2 (තද පෝර)</span>
+            </label>
+            <label class="point-radio">
+              <input type="radio" name="roastPts" value="5">
+              <span>-5 (මාරාන්තික අලවීමක්)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" data-close="roastReasonModal" data-i18n="btnCancel">අවලංගු කරන්න</button>
+          <button type="submit" class="btn btn-danger" data-i18n="btnDeductMarks">ලකුණු අඩු කරන්න 💀</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 3: Roast Feed / Wall of Shame Modal -->
+  <div id="roastFeedModal" class="modal-overlay hidden">
+    <div class="modal-container modal-large">
+      <div class="modal-header">
+        <div class="flex-title">
+          <span class="header-icon">📰</span>
+          <h3 data-i18n="feedModalTitle">පෝර පුවත්පත (Roast Feed)</h3>
+        </div>
+        <button class="close-modal-btn" data-close="roastFeedModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="feed-intro" data-i18n="feedIntro">බැච් එකේ සියලුම රෝස්ට් සිදුවීම් සහ ලකුණු කැපීම් කාලානුක්‍රමිකව මෙතැන සටහන් වේ.</p>
+        <div id="roastFeedList" class="feed-list">
+          <!-- Dynamically populated -->
+        </div>
+        <div id="feedEmptyState" class="feed-empty hidden">
+          <p data-i18n="feedEmpty">තවම රෝස්ට් සටහන් කර නොමැත.</p>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-danger-soft" id="clearRoastLogsBtn" data-i18n="clearLogs">Logs මකන්න</button>
+        <button type="button" class="btn btn-primary" data-close="roastFeedModal" data-i18n="btnClose">වසන්න</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: WhatsApp Share Text Modal -->
+  <div id="whatsappModal" class="modal-overlay hidden">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3>💬 WhatsApp Standings Share</h3>
+        <button class="close-modal-btn" data-close="whatsappModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <p data-i18n="whatsappDesc">මෙම සාරාංශය Copy කර ඔබේ University WhatsApp Group එකට හෝ Status එකට යවන්න:</p>
+        <textarea id="whatsappTextPreview" class="share-textarea" readonly rows="8"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" data-close="whatsappModal" data-i18n="btnClose">වසන්න</button>
+        <button type="button" class="btn btn-primary" id="copyWhatsappBtn">
+          <span class="btn-icon">📋</span>
+          <span data-i18n="btnCopy">Copy කරන්න</span>
+        </button>
+        <button type="button" class="btn btn-accent" id="openDirectWhatsappBtn">
+          <span class="btn-icon">🚀</span>
+          <span>WhatsApp Open</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 5: Story / Scorecard Image Generator Modal -->
+  <div id="imageCardModal" class="modal-overlay hidden">
+    <div class="modal-container modal-large">
+      <div class="modal-header">
+        <div class="flex-title">
+          <span class="header-icon">📸</span>
+          <h3 data-i18n="imageModalTitle">WhatsApp Status / Instagram Story Card</h3>
+        </div>
+        <button class="close-modal-btn" data-close="imageCardModal">✕</button>
+      </div>
+      <div class="modal-body text-center">
+        <p data-i18n="imageModalDesc">ඔබේ යාලුවන්ගේ ලකුණු පුවරුව සුපිරි Story Card එකක් ලෙස Image එකක් කර Download කරගන්න!</p>
+        
+        <!-- Live Canvas Preview -->
+        <div class="canvas-wrapper">
+          <canvas id="scorecardCanvas" width="800" height="1000"></canvas>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" data-close="imageCardModal" data-i18n="btnClose">වසන්න</button>
+        <button type="button" class="btn btn-primary" id="downloadCardBtn">
+          <span class="btn-icon">💾</span>
+          <span data-i18n="btnDownloadImage">Image එක බාගත කරන්න (PNG)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 6: Sync & Backup Modal -->
+  <div id="syncModal" class="modal-overlay hidden">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="flex-title">
+          <span class="header-icon">🔄</span>
+          <h3 data-i18n="syncModalTitle">දත්ත ආරක්ෂා කිරීම සහ බෙදාගැනීම</h3>
+        </div>
+        <button class="close-modal-btn" data-close="syncModal">✕</button>
+      </div>
+      <div class="modal-body">
+        
+        <div class="sync-section">
+          <h4 data-i18n="shareLinkTitle">🔗 සජීවී Share Link එක</h4>
+          <p class="section-desc" data-i18n="shareLinkDesc">මෙම Link එක යාලුවන්ට යැවීමෙන් ඔවුන්ගේ දුරකථනයටත් මේ ලකුණු ඒ විදියටම ලබාගත හැක.</p>
+          <div class="copy-input-group">
+            <input type="text" id="shareUrlInput" readonly>
+            <button type="button" class="btn btn-primary" id="copyShareUrlBtn" data-i18n="copy">Copy</button>
+          </div>
+        </div>
+
+        <hr class="modal-divider">
+
+        <div class="sync-section">
+          <h4 data-i18n="backupTitle">💾 Backup & Restore (JSON)</h4>
+          <p class="section-desc" data-i18n="backupDesc">ඔබේ සම්පූර්ණ ලකුණු ලැයිස්තුව File එකක් ලෙස Save කරගන්න හෝ Restore කරන්න.</p>
+          <div class="flex-actions-wrap">
+            <button type="button" class="btn btn-secondary" id="exportJsonBtn">
+              <span class="btn-icon">📥</span>
+              <span data-i18n="exportJson">Backup බාගත කරන්න</span>
+            </button>
+            <label class="btn btn-dark file-upload-btn">
+              <span class="btn-icon">📤</span>
+              <span data-i18n="importJson">Restore කරන්න</span>
+              <input type="file" id="importJsonInput" accept=".json" class="hidden">
+            </label>
+          </div>
+        </div>
+
+        <hr class="modal-divider">
+
+        <div class="sync-section">
+          <h4 class="text-danger" data-i18n="dangerZoneTitle">⚠️ නව තරඟයක් (Reset Game)</h4>
+          <p class="section-desc" data-i18n="resetDesc">සියලු මිතුරන්ගේ ලකුණු 10 කර නැවත තරඟය මුල සිට ආරම්භ කරන්න.</p>
+          <button type="button" class="btn btn-danger-soft" id="resetPointsBtn" data-i18n="resetPoints">ලකුණු Reset කරන්න</button>
+        </div>
+
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-primary" data-close="syncModal" data-i18n="btnClose">වසන්න</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- JavaScript -->
+  <script src="app.js"></script>
+</body>
+</html>
