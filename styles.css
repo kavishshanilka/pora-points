@@ -1,6 +1,6 @@
 /* ============================================================
    PORA POINTS - UNIVERSITY ROAST & BACKFIRE LEADERBOARD
-   Theme: Cyber-Arcade Dark / Neon Fire, Aura & Toxic Red
+   Theme: Cyber-Arcade Dark / Neon Fire, Aura & Real-Time Cloud Sync
    ============================================================ */
 
 :root {
@@ -165,6 +165,52 @@ body {
   gap: 0.5rem;
 }
 
+/* Cloud Status Indicator in Header */
+.cloud-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #34d399;
+}
+
+.cloud-status-badge.syncing {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+}
+
+.cloud-status-badge.error {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #f87171;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  animation: pulseDot 2s infinite ease-in-out;
+}
+
+.cloud-status-badge.syncing .status-dot {
+  background: #f59e0b;
+  box-shadow: 0 0 8px #f59e0b;
+  animation: pulseDot 0.6s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.5; }
+}
+
 .control-btn {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--border-color);
@@ -209,6 +255,12 @@ body {
   transition: var(--transition);
   text-decoration: none;
   white-space: nowrap;
+}
+
+.btn-sm {
+  padding: 0.5rem 0.8rem;
+  font-size: 0.8rem;
+  border-radius: var(--radius-sm);
 }
 
 .btn:active {
@@ -429,6 +481,10 @@ body {
 
 .text-burn {
   color: #f87171;
+}
+
+.text-green {
+  color: #34d399;
 }
 
 /* ============================================================
@@ -702,22 +758,6 @@ body {
 .btn-backfire:hover {
   filter: brightness(1.12);
   transform: translateY(-1px);
-}
-
-.btn-quick {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid var(--border-color);
-  color: var(--text-main);
-  padding: 0.6rem 0.65rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.btn-quick:hover {
-  background: rgba(255, 255, 255, 0.15);
 }
 
 .btn-more-menu {
@@ -1151,6 +1191,43 @@ body {
   border-radius: var(--radius-md);
 }
 
+/* Cloud Card in Modal */
+.cloud-info-card {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cloud-info-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cloud-icon {
+  font-size: 1.8rem;
+}
+
+.cloud-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.cloud-sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.cloud-actions-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 /* Sync & Backup Section */
 .sync-section {
   display: flex;
@@ -1273,6 +1350,11 @@ body {
 
   .btn-text-desktop {
     display: none;
+  }
+
+  .cloud-status-badge {
+    padding: 0.35rem 0.55rem;
+    font-size: 0.7rem;
   }
 
   .action-bar {

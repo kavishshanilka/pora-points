@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Pora Points | University Roast & Backfire Scoreboard</title>
-  <meta name="description" content="University Roast & Backfire Leaderboard. Add marks for landing savage roasts (+1), deduct marks when a roast fails and backfires on you (-1)!">
+  <meta name="description" content="University Roast & Backfire Leaderboard. Add marks for landing savage roasts (+1), deduct marks when a roast fails and backfires on you (-1)! Real-time multi-device cloud sync enabled.">
   <meta name="theme-color" content="#0d0f18">
   <link rel="manifest" href="manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,13 +35,19 @@
           </div>
         </div>
 
-        <!-- Header Controls -->
+        <!-- Header Controls & Live Cloud Badge -->
         <div class="header-controls">
+          <div id="cloudStatusBadge" class="cloud-status-badge" title="Real-time multi-device cloud sync is active">
+            <span class="status-dot"></span>
+            <span id="cloudStatusText">Live Synced</span>
+          </div>
+
           <button id="soundToggleBtn" class="control-btn" title="Toggle Sound FX">
             <span id="soundIcon" class="btn-icon">🔊</span>
             <span class="btn-text-desktop">Sound</span>
           </button>
-          <button id="syncModalBtn" class="control-btn" title="Sync & Share Board">
+          
+          <button id="syncModalBtn" class="control-btn" title="Sync & Room Settings">
             <span class="btn-icon">🔄</span>
             <span class="btn-text-desktop">Sync</span>
           </button>
@@ -141,7 +147,7 @@
 
     <!-- Footer -->
     <footer class="app-footer">
-      <p>Made with 🔥 for University Legends | <span class="brand-accent">Pora Points v1.0</span></p>
+      <p>Made with 🔥 for University Legends | <span class="brand-accent">Pora Points v2.0</span> • Real-Time Cloud Synced</p>
       <p class="footer-subtext">Purely for laughs, friendly banter, and campus canteen memories!</p>
     </footer>
 
@@ -331,21 +337,51 @@
     </div>
   </div>
 
-  <!-- Modal 6: Sync & Backup Modal -->
+  <!-- Modal 6: Real-Time Sync & Backup Modal -->
   <div id="syncModal" class="modal-overlay hidden">
     <div class="modal-container">
       <div class="modal-header">
         <div class="flex-title">
-          <span class="header-icon">🔄</span>
-          <h3>Sync & Data Backup</h3>
+          <span class="header-icon">☁️</span>
+          <h3>Live Cloud Sync & Room Settings</h3>
         </div>
         <button class="close-modal-btn" data-close="syncModal">✕</button>
       </div>
       <div class="modal-body">
         
+        <!-- Real-Time Cloud Status Banner -->
+        <div class="cloud-info-card">
+          <div class="cloud-info-header">
+            <span class="cloud-icon">☁️</span>
+            <div>
+              <div class="cloud-title">Real-Time Cloud Sync: <span id="modalCloudState" class="text-green">ACTIVE</span></div>
+              <div class="cloud-sub">All friends and devices share the exact same scoreboard automatically!</div>
+            </div>
+          </div>
+          <div class="cloud-actions-row">
+            <button type="button" class="btn btn-secondary btn-sm" id="manualPullCloudBtn">
+              <span>⬇️ Fetch Cloud Updates</span>
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" id="manualPushCloudBtn">
+              <span>⬆️ Force Push to Cloud</span>
+            </button>
+          </div>
+        </div>
+
         <div class="sync-section">
-          <h4>🔗 Live Share Link</h4>
-          <p class="section-desc">Share this link with your squad. When they open it, their phone syncs the current scoreboard!</p>
+          <h4>🏠 Squad Room Code</h4>
+          <p class="section-desc">By default, all your devices connect to the same main room. You can also set a custom room name for your batch!</p>
+          <div class="copy-input-group">
+            <input type="text" id="roomCodeInput" placeholder="main" maxlength="20">
+            <button type="button" class="btn btn-primary" id="saveRoomCodeBtn">Set Room</button>
+          </div>
+        </div>
+
+        <hr class="modal-divider">
+
+        <div class="sync-section">
+          <h4>🔗 Share Live Website Link</h4>
+          <p class="section-desc">Share this direct link with your batchmates. Anyone opening this link sees the live shared scoreboard!</p>
           <div class="copy-input-group">
             <input type="text" id="shareUrlInput" readonly>
             <button type="button" class="btn btn-primary" id="copyShareUrlBtn">Copy Link</button>
@@ -355,8 +391,8 @@
         <hr class="modal-divider">
 
         <div class="sync-section">
-          <h4>💾 JSON Backup & Restore</h4>
-          <p class="section-desc">Download a backup file of your entire squad marks and roast notes.</p>
+          <h4>💾 JSON File Backup & Restore</h4>
+          <p class="section-desc">Download a local backup copy of your entire squad marks and roast logs.</p>
           <div class="flex-actions-wrap">
             <button type="button" class="btn btn-secondary" id="exportJsonBtn">
               <span class="btn-icon">📥</span>
@@ -373,8 +409,8 @@
         <hr class="modal-divider">
 
         <div class="sync-section">
-          <h4 class="text-danger">⚠️ Reset Season / Fresh Game</h4>
-          <p class="section-desc">Reset all squad members back to 0 marks to start a brand new semester competition.</p>
+          <h4 class="text-danger">⚠️ Reset Game Season</h4>
+          <p class="section-desc">Reset all squad members back to 0 marks across all devices to start a fresh game.</p>
           <button type="button" class="btn btn-danger-soft" id="resetPointsBtn">Reset All Marks to 0</button>
         </div>
 
