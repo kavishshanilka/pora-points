@@ -107,6 +107,8 @@ class PoraState {
 
     this.updatedAt = 0;
     this.isSyncing = false;
+    this.isInitialLoading = true;
+    this.hasLocalCache = false;
     this.pollInterval = null;
 
     this.loadLocalState();
@@ -122,22 +124,24 @@ class PoraState {
     if (raw) {
       try {
         const parsed = JSON.parse(raw);
-        this.friends = Array.isArray(parsed.friends) ? parsed.friends : [...DEFAULT_FRIENDS];
-        this.logs = Array.isArray(parsed.logs) ? parsed.logs : [...DEFAULT_LOGS];
-        this.updatedAt = parsed.updatedAt || Date.now();
-      } catch (e) {
-        this.resetToDefaults();
-      }
-    } else {
-      this.resetToDefaults();
+        if (parsed && Array.isArray(parsed.friends)) {
+          this.friends = parsed.friends;
+          this.logs = Array.isArray(parsed.logs) ? parsed.logs : [];
+          this.updatedAt = parsed.updatedAt || 0;
+          this.hasLocalCache = true;
+          this.isInitialLoading = false;
+          return;
+        }
+      } catch (e) {}
     }
-  }
 
-  resetToDefaults() {
-    this.friends = [...DEFAULT_FRIENDS];
-    this.logs = [...DEFAULT_LOGS];
-    this.updatedAt = Date.now();
-    this.saveLocalState();
+    // New device / incognito: No local cache exists yet!
+    // Initialize with 0 timestamp so cloud data is ALWAYS adopted immediately.
+    this.friends = [];
+    this.logs = [];
+    this.updatedAt = 0;
+    this.hasLocalCache = false;
+    this.isInitialLoading = true;
   }
 
   saveLocalState() {
@@ -154,7 +158,7 @@ class PoraState {
     // Initial fetch from cloud
     await this.fetchFromCloud();
 
-    // Start background polling every 5 seconds for live multi-device updates
+    // Start background polling every 2.5s for live multi-device updates
     this.startPolling();
 
     // Re-check cloud immediately when user switches back to this browser tab or focuses window
@@ -176,7 +180,6 @@ class PoraState {
 
   startPolling() {
     if (this.pollInterval) clearInterval(this.pollInterval);
-    // Fast 2.5s background polling for virtually real-time squad sync
     this.pollInterval = setInterval(() => {
       if (document.visibilityState === 'visible' && !this.isSyncing) {
         this.fetchFromCloud(true); // silent background poll
@@ -197,26 +200,44 @@ class PoraState {
       if (response.ok) {
         const cloudData = await response.json();
         if (cloudData && Array.isArray(cloudData.friends)) {
-          // Check if cloud data has newer updates or differs from local
           const cloudUpdatedAt = cloudData.updatedAt || 0;
-          
-          if (cloudUpdatedAt > this.updatedAt || (!this.friends.length && cloudData.friends.length)) {
+          const friendsDiffer = JSON.stringify(cloudData.friends) !== JSON.stringify(this.friends);
+
+          // Adopt cloud data if:
+          // 1. This device has no local cache yet (new device / private window), OR
+          // 2. Cloud data has a newer updatedAt, OR
+          // 3. The cloud friend list differs from current list
+          if (!this.hasLocalCache || cloudUpdatedAt > this.updatedAt || friendsDiffer) {
             this.friends = cloudData.friends;
-            this.logs = cloudData.logs || [];
-            this.updatedAt = cloudUpdatedAt;
+            this.logs = Array.isArray(cloudData.logs) ? cloudData.logs : [];
+            this.updatedAt = cloudUpdatedAt || Date.now();
+            this.hasLocalCache = true;
+            this.isInitialLoading = false;
             this.saveLocalState();
 
             if (this.onRemoteUpdate) this.onRemoteUpdate();
           }
         }
+        this.isInitialLoading = false;
         if (this.onCloudStatusChange) this.onCloudStatusChange('online');
       } else if (response.status === 404) {
-        // Cloud room doesn't exist yet: push current local state to create it!
-        await this.pushToCloud();
+        // Cloud room does not exist yet worldwide: initialize defaults and push to cloud!
+        if (!this.friends.length) {
+          this.friends = [...DEFAULT_FRIENDS];
+          this.logs = [...DEFAULT_LOGS];
+          this.updatedAt = Date.now();
+          this.hasLocalCache = true;
+          this.isInitialLoading = false;
+          this.saveLocalState();
+          if (this.onRemoteUpdate) this.onRemoteUpdate();
+          await this.pushToCloud();
+        }
       } else {
+        this.isInitialLoading = false;
         if (this.onCloudStatusChange) this.onCloudStatusChange('error');
       }
     } catch (err) {
+      this.isInitialLoading = false;
       if (this.onCloudStatusChange) this.onCloudStatusChange('offline');
     }
   }
@@ -226,6 +247,7 @@ class PoraState {
     if (this.onCloudStatusChange) this.onCloudStatusChange('syncing');
 
     this.updatedAt = Date.now();
+    this.hasLocalCache = true;
     this.saveLocalState();
 
     const payload = {
@@ -795,6 +817,20 @@ class PoraApp {
     if (friends.length === 0) {
       this.friendsListEl.innerHTML = '';
       this.emptyStateEl.classList.remove('hidden');
+
+      const titleEl = document.getElementById('emptyStateTitle');
+      const subEl = document.getElementById('emptyStateSubtitle');
+      const addBtn = document.getElementById('emptyAddBtn');
+
+      if (this.state.isInitialLoading) {
+        if (titleEl) titleEl.textContent = '☁️ Connecting to Cloud...';
+        if (subEl) subEl.textContent = 'Fetching the latest squad scoreboard from cloud...';
+        if (addBtn) addBtn.classList.add('hidden');
+      } else {
+        if (titleEl) titleEl.textContent = 'No Friends on the Roster Yet!';
+        if (subEl) subEl.textContent = 'Add your canteen, batch, or hostel squad to start scoring savage roasts and tracking backfires.';
+        if (addBtn) addBtn.classList.remove('hidden');
+      }
     } else {
       this.emptyStateEl.classList.add('hidden');
       this.friendsListEl.innerHTML = friends.map((f, idx) => this.createFriendCardHTML(f, idx)).join('');
