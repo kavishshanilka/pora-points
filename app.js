@@ -157,11 +157,15 @@ class PoraState {
     // Start background polling every 5 seconds for live multi-device updates
     this.startPolling();
 
-    // Re-check cloud immediately when user switches back to this browser tab
+    // Re-check cloud immediately when user switches back to this browser tab or focuses window
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
         this.fetchFromCloud();
       }
+    });
+
+    window.addEventListener('focus', () => {
+      this.fetchFromCloud();
     });
 
     // Re-check when internet comes back online
@@ -172,11 +176,12 @@ class PoraState {
 
   startPolling() {
     if (this.pollInterval) clearInterval(this.pollInterval);
+    // Fast 2.5s background polling for virtually real-time squad sync
     this.pollInterval = setInterval(() => {
       if (document.visibilityState === 'visible' && !this.isSyncing) {
         this.fetchFromCloud(true); // silent background poll
       }
-    }, 5000);
+    }, 2500);
   }
 
   async fetchFromCloud(silent = false) {
