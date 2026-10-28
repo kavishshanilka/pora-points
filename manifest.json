@@ -1,7 +1,7 @@
 {
-  "name": "පෝරා පොයින්ට්ස් - Pora & Aura Points",
-  "short_name": "Pora Points",
-  "description": "University roast & aura counter. Reduce marks when friends get roasted!",
+  "name": "Aura Points - University Roast & Backfire Leaderboard",
+  "short_name": "Aura Points",
+  "description": "University Roast & Backfire Leaderboard. Add marks for landing savage roasts (+1), deduct marks when a roast fails (-1)!",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0b0e17",

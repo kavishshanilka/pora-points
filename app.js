@@ -1,6 +1,6 @@
 /**
  * ============================================================
- * PORA POINTS - UNIVERSITY ROAST & BACKFIRE LEADERBOARD
+ * AURA POINTS - UNIVERSITY ROAST & BACKFIRE LEADERBOARD
  * ============================================================
  * Features:
  *  - Real-Time Multi-Device Cloud Sync via KVDB
@@ -731,7 +731,7 @@ class PoraApp {
       }, null, 2));
       const a = document.createElement('a');
       a.setAttribute('href', dataStr);
-      a.setAttribute('download', `pora_points_backup_${new Date().toISOString().slice(0, 10)}.json`);
+      a.setAttribute('download', `aura_points_backup_${new Date().toISOString().slice(0, 10)}.json`);
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -1162,7 +1162,7 @@ class PoraApp {
     const topRoaster = sortedDesc[0];
     const chiefVictim = sortedDesc[sortedDesc.length - 1];
 
-    let message = `🔥 *PORA POINTS - UNIVERSITY ROAST & BACKFIRE LEADERBOARD* 🔥\n`;
+    let message = `🔥 *AURA POINTS - UNIVERSITY ROAST & BACKFIRE LEADERBOARD* 🔥\n`;
     message += `─────────────────────────\n`;
     message += `👑 *#1 Roast God:* ${topRoaster?.avatar || ''} ${topRoaster?.name} (${topRoaster?.points > 0 ? '+' : ''}${topRoaster?.points} Marks)\n`;
     
@@ -1236,7 +1236,7 @@ class PoraApp {
     ctx.textAlign = 'center';
     ctx.font = 'bold 44px sans-serif';
     ctx.fillStyle = '#ff5722';
-    ctx.fillText('🔥 PORA POINTS 🔥', width / 2, 75);
+    ctx.fillText('🔥 AURA POINTS 🔥', width / 2, 75);
 
     ctx.font = 'bold 18px sans-serif';
     ctx.fillStyle = '#a855f7';
@@ -1331,7 +1331,7 @@ class PoraApp {
     ctx.textAlign = 'center';
     ctx.font = '14px sans-serif';
     ctx.fillStyle = '#64748b';
-    ctx.fillText(`Pora Points • Live Synced Board • ${new Date().toLocaleDateString()}`, width / 2, 940);
+    ctx.fillText(`Aura Points • Live Synced Board • ${new Date().toLocaleDateString()}`, width / 2, 940);
   }
 
   roundRect(ctx, x, y, width, height, radius) {
@@ -1351,7 +1351,7 @@ class PoraApp {
   downloadScorecardPNG() {
     const canvas = document.getElementById('scorecardCanvas');
     const a = document.createElement('a');
-    a.download = `pora_points_story_${new Date().toISOString().slice(0, 10)}.png`;
+    a.download = `aura_points_story_${new Date().toISOString().slice(0, 10)}.png`;
     a.href = canvas.toDataURL('image/png');
     a.click();
     this.showToast('📸 Poster image downloaded!', 'hit');

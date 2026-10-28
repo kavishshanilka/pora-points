@@ -1,4 +1,4 @@
-# 🔥 PORA POINTS - University Roast & Backfire Leaderboard
+# 🔥 AURA POINTS - University Roast & Backfire Leaderboard
 
 > **"Land a savage roast: +1 mark! If your roast fails and you get clowned: -1 mark!"**  
 > The ultimate campus scoreboard for university squads, hostel gangs, and canteen squads to track who has the supreme roaster aura and who keeps choking their roasts!
