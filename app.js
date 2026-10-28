@@ -1,173 +1,97 @@
 /**
  * ============================================================
- * PORA POINTS (පෝරා පොයින්ට්ස්) - UNIVERSITY ROAST & AURA COUNTER
+ * PORA POINTS - UNIVERSITY ROAST & BACKFIRE LEADERBOARD
  * ============================================================
- * Core logic, sound synthesis (Web Audio API), state management,
- * canvas poster generator, WhatsApp exporter, and bilingual dictionary.
+ * Scoring Rules:
+ *  - AWARD MARKS (+): When someone lands a savage, successful roast on a friend.
+ *  - DEDUCT MARKS (-): When someone tries to roast a friend, BADLY FAILS, everyone
+ *    laughs at them, and they get roasted in return!
+ *
+ * Includes: Note attachment for every mark change, live feed, sound synthesis,
+ * canvas story card generator, WhatsApp exporter, and URL state sync.
  */
 
 // --- Default Seed Data ---
 const DEFAULT_FRIENDS = [
-  { id: 'f_1', name: 'කසුන් (Kasun)', nickname: 'FOT', avatar: '🤡', points: 4, createdAt: 1700000000000 },
-  { id: 'f_2', name: 'නිමල් (Nimal)', nickname: 'Eng', avatar: '🗿', points: 9, createdAt: 1700000010000 },
-  { id: 'f_3', name: 'චතුර (Chathura)', nickname: 'CS', avatar: '🤓', points: -2, createdAt: 1700000020000 }
-];
-
-const DEFAULT_ROAST_LOGS = [
-  { id: 'r_1', friendId: 'f_3', friendName: 'චතුර (Chathura)', avatar: '🤓', reason: 'Crush එකට talk කරන්න ගිහින් නෑවා 💔', ptsDeducted: 1, timestamp: Date.now() - 3600000 }
-];
-
-// --- Quick Pick Roast Reasons ---
-const PRESET_ROAST_REASONS = {
-  si: [
-    'Crush එකට talk කරන්න ගිහින් නෑවා 💔',
-    'Lectures bunk කරලා sir ට මාට්ටු 🏃‍♂️',
-    'Canteen එකේ තේ එක හලාගත්තා ☕',
-    'Joke එකක් දාලා කවුරුත් හිනා වුණේ නෑ 🦗',
-    'Ex එක දැකලා හැංගුණා 🙈',
-    'Assignment deadline එක අන්තිම තත්පරේ miss වුණා 💻',
-    'කැන්ටිමේ බිල ගෙවන්න සල්ලි නෑ කිව්වා 💸',
-    'Lab exam එකේ monitor එක off වුණා 🔌'
-  ],
-  en: [
-    'Tried talking to crush and fumbled 💔',
-    'Bunked lecture & got caught by lecturer 🏃‍♂️',
-    'Spilled tea all over in canteen ☕',
-    'Cracked a joke and dead silence followed 🦗',
-    'Saw ex and hid behind a tree 🙈',
-    'Missed assignment deadline at 11:59 PM 💻',
-    'Pretended wallet was empty at canteen 💸',
-    'Accidentally unplugged PC during lab exam 🔌'
-  ]
-};
-
-// --- Bilingual Dictionary ---
-const TRANSLATIONS = {
-  si: {
-    tagline: 'යාලුවෙක් පෝර කෑවොත් ලකුණු අඩු කරන්න (-1) | University Roast Scoreboard',
-    sync: 'Sync',
-    addFriend: 'මිතුරෙක් එකතු කරන්න',
-    roastLog: 'පෝර පුවත්පත (Feed)',
-    shareScorecard: 'WhatsApp Share',
-    statusCard: 'Story Card',
-    podiumTag: '⚡ සජීවී තත්ත්වය',
-    podiumTitle: 'පෝර කාපු අය සහ අවුරා රජවරු',
-    victim1Sub: 'වැඩිපුරම පෝර කාපු කෙනා (පෝර රජා)',
-    victim2Sub: 'දෙවැනියට වැඩිපුරම පෝර කාපු කෙනා',
-    auraKingSub: 'වැඩිම ලකුණු (අඩුම පෝර)',
-    searchPlaceholder: 'මිතුරන් සොයන්න...',
-    sortMostRoasted: '💀 වැඩිපුරම පෝර කාපු (අඩු ලකුණු)',
-    sortHighestAura: '👑 වැඩිම ලකුණු (Aura High)',
-    sortRecent: '⏱️ අලුත්ම',
-    emptyTitle: 'තාම කිසිම කෙනෙක් පෝර කාලා නෑ!',
-    emptySubtitle: 'ඔබේ කැන්ටිමේ හෝ බැච් එකේ යාලුවන්ව එකතු කර ලකුණු සටහන් කිරීම අරඹන්න.',
-    addFirstFriend: 'පළමු මිතුරා එකතු කරන්න',
-    footerText: 'යාලුවන්ගේ හිත් රිදවීමකින් තොරව විනෝදය සඳහා පමණි!',
-    modalAddTitle: 'නව මිතුරෙකු එකතු කරන්න',
-    modalEditTitle: 'මිතුරා සංස්කරණය කරන්න',
-    labelName: 'නම (Name) *',
-    labelNickname: 'අන්වර්ථ නාමය / පීඨය / බැච් එක (Optional)',
-    labelAvatar: 'Avatar එකක් තෝරන්න',
-    labelInitialPoints: 'ආරම්භක ලකුණු (Starting Marks)',
-    helperInitialPoints: 'සාමාන්‍යයෙන් 0 හෝ 10 කින් පටන් ගත හැක. පෝර කන විට ලකුණු අඩු වේ!',
-    btnCancel: 'අවලංගු කරන්න',
-    btnSave: 'සුරකින්න',
-    modalRoastTitle: '🔥 රෝස්ට් කළ හේතුව සටහන් කරන්න',
-    roastDeductSubtitle: 'පෝර කෑම නිසා ලකුණු අඩු කෙරේ (- Marks)',
-    quickReasons: 'නිතර වන සිදුවීම් (Quick Pick):',
-    customReason: 'සිදුවූ සැබෑ සිද්ධිය (Custom Roast):',
-    marksToDeduct: 'අඩු කරන ලකුණු ප්‍රමාණය (Marks to Deduct):',
-    btnDeductMarks: 'ලකුණු අඩු කරන්න 💀',
-    feedModalTitle: 'පෝර පුවත්පත (Roast Feed)',
-    feedIntro: 'බැච් එකේ සියලුම රෝස්ට් සිදුවීම් සහ ලකුණු කැපීම් කාලානුක්‍රමිකව මෙතැන සටහන් වේ.',
-    feedEmpty: 'තවම රෝස්ට් සටහන් කර නොමැත.',
-    clearLogs: 'Logs මකන්න',
-    btnClose: 'වසන්න',
-    whatsappDesc: 'මෙම සාරාංශය Copy කර ඔබේ University WhatsApp Group එකට හෝ Status එකට යවන්න:',
-    btnCopy: 'Copy කරන්න',
-    imageModalTitle: 'WhatsApp Status / Instagram Story Card',
-    imageModalDesc: 'ඔබේ යාලුවන්ගේ ලකුණු පුවරුව සුපිරි Story Card එකක් ලෙස Image එකක් කර Download කරගන්න!',
-    btnDownloadImage: 'Image එක බාගත කරන්න (PNG)',
-    syncModalTitle: 'දත්ත ආරක්ෂා කිරීම සහ බෙදාගැනීම',
-    shareLinkTitle: '🔗 සජීවී Share Link එක',
-    shareLinkDesc: 'මෙම Link එක යාලුවන්ට යැවීමෙන් ඔවුන්ගේ දුරකථනයටත් මේ ලකුණු ඒ විදියටම ලබාගත හැක.',
-    copy: 'Copy',
-    backupTitle: '💾 Backup & Restore (JSON)',
-    backupDesc: 'ඔබේ සම්පූර්ණ ලකුණු ලැයිස්තුව File එකක් ලෙස Save කරගන්න හෝ Restore කරන්න.',
-    exportJson: 'Backup බාගත කරන්න',
-    importJson: 'Restore කරන්න',
-    dangerZoneTitle: '⚠️ නව තරඟයක් (Reset Game)',
-    resetDesc: 'සියලු මිතුරන්ගේ ලකුණු 10 කර නැවත තරඟය මුල සිට ආරම්භ කරන්න.',
-    resetPoints: 'ලකුණු Reset කරන්න'
+  {
+    id: 'f_1',
+    name: 'Kasun',
+    nickname: 'FOT',
+    avatar: '😎',
+    points: 4,
+    latestNote: { text: 'Delivered a brutal canteen roast', type: 'hit', pts: 1, time: Date.now() - 7200000 },
+    createdAt: 1700000000000
   },
-  en: {
-    tagline: 'When a friend gets roasted, reduce their marks (-1) | University Roast Scoreboard',
-    sync: 'Sync',
-    addFriend: 'Add Friend',
-    roastLog: 'Roast Feed',
-    shareScorecard: 'WhatsApp Share',
-    statusCard: 'Story Card',
-    podiumTag: '⚡ LIVE STANDINGS',
-    podiumTitle: 'Top Victims & Aura Masters',
-    victim1Sub: 'Supreme Roast Victim (King of Pora)',
-    victim2Sub: 'Second Most Roasted',
-    auraKingSub: 'Highest Marks (Roast Immune)',
-    searchPlaceholder: 'Search friends...',
-    sortMostRoasted: '💀 Most Roasted (Lowest Marks)',
-    sortHighestAura: '👑 Highest Marks (Aura High)',
-    sortRecent: '⏱️ Recent',
-    emptyTitle: 'No one has been roasted yet!',
-    emptySubtitle: 'Add your canteen & batch squad to start tracking roast marks.',
-    addFirstFriend: 'Add First Friend',
-    footerText: 'Made for fun & banter among university legends!',
-    modalAddTitle: 'Add New Friend',
-    modalEditTitle: 'Edit Friend Details',
-    labelName: 'Name *',
-    labelNickname: 'Nickname / Faculty / Batch (Optional)',
-    labelAvatar: 'Pick an Avatar',
-    labelInitialPoints: 'Starting Marks',
-    helperInitialPoints: 'Usually starts at 10 or 0. Marks drop when roasted!',
-    btnCancel: 'Cancel',
-    btnSave: 'Save',
-    modalRoastTitle: '🔥 Log Roast Incident',
-    roastDeductSubtitle: 'Marks will be deducted for getting roasted (- Marks)',
-    quickReasons: 'Common Incidents (Quick Pick):',
-    customReason: 'What happened? (Custom Reason):',
-    marksToDeduct: 'Marks to Deduct:',
-    btnDeductMarks: 'Deduct Marks 💀',
-    feedModalTitle: 'The Roast Wall of Shame',
-    feedIntro: 'Chronological timeline of all roast incidents and mark deductions.',
-    feedEmpty: 'No roasts recorded yet.',
-    clearLogs: 'Clear Logs',
-    btnClose: 'Close',
-    whatsappDesc: 'Copy this summary to paste into your University WhatsApp Group or Story:',
-    btnCopy: 'Copy Text',
-    imageModalTitle: 'WhatsApp Status / Instagram Story Card',
-    imageModalDesc: 'Download this slick scorecard graphic to share on your status or group!',
-    btnDownloadImage: 'Download Image (PNG)',
-    syncModalTitle: 'Sync & Data Backup',
-    shareLinkTitle: '🔗 Live Share Link',
-    shareLinkDesc: 'Send this link to friends so they can view and sync the same board on their phones.',
-    copy: 'Copy',
-    backupTitle: '💾 Backup & Restore (JSON)',
-    backupDesc: 'Download your full scoreboard data as a JSON file or restore a backup.',
-    exportJson: 'Download Backup',
-    importJson: 'Restore Backup',
-    dangerZoneTitle: '⚠️ Reset Game',
-    resetDesc: 'Reset all friends back to 10 marks to start a brand new game.',
-    resetPoints: 'Reset Marks'
+  {
+    id: 'f_2',
+    name: 'Nimal',
+    nickname: 'Eng',
+    avatar: '🗿',
+    points: 7,
+    latestNote: { text: 'Epic comeback during tea break', type: 'hit', pts: 2, time: Date.now() - 3600000 },
+    createdAt: 1700000010000
+  },
+  {
+    id: 'f_3',
+    name: 'Chathura',
+    nickname: 'CS',
+    avatar: '🤡',
+    points: -2,
+    latestNote: { text: 'Tried to roast Kasun but choked mid-sentence & got clowned', type: 'backfire', pts: 1, time: Date.now() - 1800000 },
+    createdAt: 1700000020000
   }
+];
+
+const DEFAULT_LOGS = [
+  {
+    id: 'log_1',
+    friendId: 'f_3',
+    friendName: 'Chathura',
+    avatar: '🤡',
+    actionType: 'backfire',
+    pts: 1,
+    note: 'Tried to roast Kasun but choked mid-sentence & everyone roasted him instead',
+    timestamp: Date.now() - 1800000
+  },
+  {
+    id: 'log_2',
+    friendId: 'f_2',
+    friendName: 'Nimal',
+    avatar: '🗿',
+    actionType: 'hit',
+    pts: 2,
+    note: 'Epic comeback during canteen tea break',
+    timestamp: Date.now() - 3600000
+  }
+];
+
+// --- Quick Pick Note Presets ---
+const NOTE_PRESETS = {
+  hit: [
+    'Clean canteen comeback 🔥',
+    'Exposed squad secret in lecture hall 💀',
+    'Roasted about exam results and hit hard 🎯',
+    'Nobody had an answer to that punchline 🤐',
+    'Instant kill during lunch break 🍔',
+    'Savage observation about his outfit 👟'
+  ],
+  backfire: [
+    'Tried to roast someone but choked & got cooked 💀',
+    'Dead silence followed his joke, everyone stared 🦗',
+    'Tried to roast GPA but forgot his own was lower 📉',
+    'Stuttered mid-roast and became the main victim 🤡',
+    'Uno reversed by the entire squad 🔄',
+    'Crush heard his failed joke and cringed 🙈'
+  ]
 };
 
 // --- App State ---
 class PoraState {
   constructor() {
-    this.storageKey = 'pora_points_app_data';
-    this.currentLang = localStorage.getItem('pora_lang') || 'si';
+    this.storageKey = 'pora_points_v2_data';
     this.soundEnabled = localStorage.getItem('pora_sound') !== 'false';
-    this.sortMode = 'most_roasted'; // 'most_roasted' | 'highest_aura' | 'recent'
+    this.sortMode = 'highest_marks'; // 'highest_marks' | 'most_backfires' | 'recent'
     this.searchQuery = '';
-    
     this.loadState();
   }
 
@@ -177,14 +101,14 @@ class PoraState {
       try {
         const parsed = JSON.parse(raw);
         this.friends = parsed.friends || DEFAULT_FRIENDS;
-        this.roastLogs = parsed.roastLogs || DEFAULT_ROAST_LOGS;
+        this.logs = parsed.logs || DEFAULT_LOGS;
       } catch (e) {
         this.friends = [...DEFAULT_FRIENDS];
-        this.roastLogs = [...DEFAULT_ROAST_LOGS];
+        this.logs = [...DEFAULT_LOGS];
       }
     } else {
       this.friends = [...DEFAULT_FRIENDS];
-      this.roastLogs = [...DEFAULT_ROAST_LOGS];
+      this.logs = [...DEFAULT_LOGS];
       this.saveState();
     }
   }
@@ -192,18 +116,19 @@ class PoraState {
   saveState() {
     const payload = {
       friends: this.friends,
-      roastLogs: this.roastLogs
+      logs: this.logs
     };
     localStorage.setItem(this.storageKey, JSON.stringify(payload));
   }
 
-  addFriend(name, nickname, avatar, startingPoints = 10) {
+  addFriend(name, nickname, avatar, startingPoints = 0) {
     const newFriend = {
       id: 'f_' + Date.now(),
       name: name.trim(),
       nickname: nickname ? nickname.trim() : '',
-      avatar: avatar || '🤡',
+      avatar: avatar || '😎',
       points: parseInt(startingPoints, 10) || 0,
+      latestNote: null,
       createdAt: Date.now()
     };
     this.friends.push(newFriend);
@@ -223,59 +148,69 @@ class PoraState {
 
   deleteFriend(id) {
     this.friends = this.friends.filter(f => f.id !== id);
-    this.roastLogs = this.roastLogs.filter(r => r.friendId !== id);
+    this.logs = this.logs.filter(l => l.friendId !== id);
     this.saveState();
   }
 
-  deductMarks(friendId, pointsDeducted = 1, reason = '') {
+  // Record a Roast Hit (+ Marks) or Roast Backfire (- Marks) with a note
+  recordAction(friendId, actionType, pts = 1, note = '') {
     const friend = this.friends.find(f => f.id === friendId);
     if (!friend) return null;
 
-    friend.points -= pointsDeducted;
-    
-    // Add to Roast Log
-    const log = {
-      id: 'r_' + Date.now(),
+    const pointsNum = parseInt(pts, 10) || 1;
+
+    if (actionType === 'hit') {
+      friend.points += pointsNum;
+    } else {
+      friend.points -= pointsNum;
+    }
+
+    const defaultNote = actionType === 'hit' 
+      ? 'Delivered a savage roast 🔥' 
+      : 'Failed roast & got clowned by the squad 💀';
+
+    const finalNote = note.trim() || defaultNote;
+
+    // Update friend's latest note
+    friend.latestNote = {
+      text: finalNote,
+      type: actionType,
+      pts: pointsNum,
+      time: Date.now()
+    };
+
+    // Add to activity log feed
+    const logEntry = {
+      id: 'log_' + Date.now(),
       friendId: friend.id,
       friendName: friend.name,
       avatar: friend.avatar,
-      reason: reason || (pointsDeducted >= 5 ? 'Savage Mega Roast! 💀' : 'Got roasted by the squad 🔥'),
-      ptsDeducted: pointsDeducted,
+      actionType: actionType, // 'hit' | 'backfire'
+      pts: pointsNum,
+      note: finalNote,
       timestamp: Date.now()
     };
-    this.roastLogs.unshift(log);
-    
-    // Keep max 100 logs
-    if (this.roastLogs.length > 100) {
-      this.roastLogs.pop();
-    }
+
+    this.logs.unshift(logEntry);
+    if (this.logs.length > 100) this.logs.pop();
 
     this.saveState();
-    return { friend, log };
+    return { friend, log: logEntry };
   }
 
-  addMarks(friendId, pointsAdded = 1) {
-    const friend = this.friends.find(f => f.id === friendId);
-    if (!friend) return null;
-
-    friend.points += pointsAdded;
-    this.saveState();
-    return friend;
-  }
-
-  resetAllMarks(defaultValue = 10) {
+  resetAllMarks(defaultValue = 0) {
     this.friends.forEach(f => {
       f.points = defaultValue;
+      f.latestNote = null;
     });
     this.saveState();
   }
 
   clearLogs() {
-    this.roastLogs = [];
+    this.logs = [];
     this.saveState();
   }
 
-  // Get friends sorted based on active sort mode and search filter
   getFilteredFriends() {
     let list = [...this.friends];
 
@@ -287,14 +222,13 @@ class PoraState {
       );
     }
 
-    if (this.sortMode === 'most_roasted') {
-      // Ascending points: lowest points first (the one roasted the most!)
-      list.sort((a, b) => a.points - b.points);
-    } else if (this.sortMode === 'highest_aura') {
-      // Descending points: highest points first (Aura Master)
+    if (this.sortMode === 'highest_marks') {
+      // Descending marks: highest points first (Roast God)
       list.sort((a, b) => b.points - a.points);
+    } else if (this.sortMode === 'most_backfires') {
+      // Ascending marks: lowest points first (Chief Backfire Victim)
+      list.sort((a, b) => a.points - b.points);
     } else if (this.sortMode === 'recent') {
-      // Recently added
       list.sort((a, b) => b.createdAt - a.createdAt);
     }
 
@@ -302,7 +236,7 @@ class PoraState {
   }
 }
 
-// --- Sound Synthesizer (Web Audio API) ---
+// --- Web Audio API Sound Synthesizer ---
 class SoundEngine {
   constructor() {
     this.ctx = null;
@@ -311,130 +245,79 @@ class SoundEngine {
   init() {
     if (!this.ctx) {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (AudioCtx) {
-        this.ctx = new AudioCtx();
-      }
+      if (AudioCtx) this.ctx = new AudioCtx();
     }
     if (this.ctx && this.ctx.state === 'suspended') {
       this.ctx.resume();
     }
   }
 
-  // Deep Sub-Bass Bonk / Vine Boom effect for -1 Roast
-  playRoastBonk() {
+  // Triumphant crowd punch on +1 Roast Hit
+  playHitSound() {
     try {
       this.init();
       if (!this.ctx) return;
       const t = this.ctx.currentTime;
 
-      // Sub Bass Oscillator
+      // Bright chord (C5, G5, C6)
+      [523.25, 783.99, 1046.5].forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, t);
+
+        gain.gain.setValueAtTime(0.25, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35 + (idx * 0.05));
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(t);
+        osc.stop(t + 0.4);
+      });
+    } catch (e) {}
+  }
+
+  // Sad cartoon slide down / Wah-wah bonk on -1 Backfire
+  playBackfireSound() {
+    try {
+      this.init();
+      if (!this.ctx) return;
+      const t = this.ctx.currentTime;
+
+      // Descending slide
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
 
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(140, t);
-      osc.frequency.exponentialRampToValueAtTime(35, t + 0.35);
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(260, t);
+      osc.frequency.linearRampToValueAtTime(120, t + 0.35);
 
-      gain.gain.setValueAtTime(0.7, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+      gain.gain.setValueAtTime(0.25, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
 
       osc.connect(gain);
       gain.connect(this.ctx.destination);
 
       osc.start(t);
-      osc.stop(t + 0.4);
+      osc.stop(t + 0.45);
 
-      // Noise punch burst
-      const bufferSize = this.ctx.sampleRate * 0.1;
-      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.03));
-      }
-      const noise = this.ctx.createBufferSource();
-      noise.buffer = buffer;
-      const noiseGain = this.ctx.createGain();
-      noiseGain.gain.setValueAtTime(0.3, t);
-      noiseGain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
-      noise.connect(noiseGain);
-      noiseGain.connect(this.ctx.destination);
-      noise.start(t);
-
-    } catch (e) {
-      console.warn('Audio play error:', e);
-    }
+      // Low bass thud at end
+      const sub = this.ctx.createOscillator();
+      const subGain = this.ctx.createGain();
+      sub.type = 'sine';
+      sub.frequency.setValueAtTime(80, t + 0.15);
+      sub.frequency.exponentialRampToValueAtTime(30, t + 0.45);
+      subGain.gain.setValueAtTime(0.35, t + 0.15);
+      subGain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+      sub.connect(subGain);
+      subGain.connect(this.ctx.destination);
+      sub.start(t + 0.15);
+      sub.stop(t + 0.45);
+    } catch (e) {}
   }
 
-  // Mega Airhorn Fanfare for -5 Mega Roast
-  playMegaRoastAirhorn() {
-    try {
-      this.init();
-      if (!this.ctx) return;
-      const t = this.ctx.currentTime;
-
-      const freqs = [311.13, 311.13, 466.16]; // Eb4, Eb4, Bb4
-      const times = [0, 0.12, 0.28];
-      const durations = [0.09, 0.09, 0.35];
-
-      freqs.forEach((freq, idx) => {
-        const start = t + times[idx];
-        const dur = durations[idx];
-
-        // 2 detuned sawtooths for raspy horn vibe
-        [-3, 3].forEach(detune => {
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-
-          osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(freq, start);
-          osc.detune.setValueAtTime(detune, start);
-
-          gain.gain.setValueAtTime(0.2, start);
-          gain.gain.exponentialRampToValueAtTime(0.01, start + dur);
-
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
-
-          osc.start(start);
-          osc.stop(start + dur);
-        });
-      });
-    } catch (e) {
-      console.warn('Audio play error:', e);
-    }
-  }
-
-  // Uplifting chime on Comeback (+1)
-  playComebackChime() {
-    try {
-      this.init();
-      if (!this.ctx) return;
-      const t = this.ctx.currentTime;
-      const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
-
-      notes.forEach((freq, idx) => {
-        const start = t + (idx * 0.08);
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, start);
-
-        gain.gain.setValueAtTime(0.25, start);
-        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.3);
-
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-
-        osc.start(start);
-        osc.stop(start + 0.3);
-      });
-    } catch (e) {
-      console.warn('Audio play error:', e);
-    }
-  }
-
-  // Simple UI click
   playClick() {
     try {
       this.init();
@@ -442,19 +325,15 @@ class SoundEngine {
       const t = this.ctx.currentTime;
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
-
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(800, t);
-      osc.frequency.exponentialRampToValueAtTime(400, t + 0.05);
-
+      osc.frequency.setValueAtTime(700, t);
+      osc.frequency.exponentialRampToValueAtTime(300, t + 0.04);
       gain.gain.setValueAtTime(0.15, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
-
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
       osc.connect(gain);
       gain.connect(this.ctx.destination);
-
       osc.start(t);
-      osc.stop(t + 0.05);
+      osc.stop(t + 0.04);
     } catch (e) {}
   }
 }
@@ -464,8 +343,7 @@ class PoraApp {
   constructor() {
     this.state = new PoraState();
     this.sound = new SoundEngine();
-    
-    // Check URL hash for shared board sync
+
     this.checkSharedUrlHash();
 
     // DOM Elements
@@ -477,7 +355,7 @@ class PoraApp {
 
     // Modals
     this.friendModalEl = document.getElementById('friendModal');
-    this.roastReasonModalEl = document.getElementById('roastReasonModal');
+    this.markActionModalEl = document.getElementById('markActionModal');
     this.roastFeedModalEl = document.getElementById('roastFeedModal');
     this.whatsappModalEl = document.getElementById('whatsappModal');
     this.imageCardModalEl = document.getElementById('imageCardModal');
@@ -485,23 +363,13 @@ class PoraApp {
 
     // Forms
     this.friendFormEl = document.getElementById('friendForm');
-    this.roastReasonFormEl = document.getElementById('roastReasonForm');
+    this.markActionFormEl = document.getElementById('markActionForm');
 
     this.initEventListeners();
-    this.updateLanguageUI();
     this.render();
   }
 
   initEventListeners() {
-    // Language Toggle
-    document.getElementById('langToggleBtn').addEventListener('click', () => {
-      this.sound.playClick();
-      this.state.currentLang = this.state.currentLang === 'si' ? 'en' : 'si';
-      localStorage.setItem('pora_lang', this.state.currentLang);
-      this.updateLanguageUI();
-      this.render();
-    });
-
     // Sound Toggle
     const soundToggleBtn = document.getElementById('soundToggleBtn');
     const soundIcon = document.getElementById('soundIcon');
@@ -512,7 +380,7 @@ class PoraApp {
       if (this.state.soundEnabled) this.sound.playClick();
     });
 
-    // Add Friend Button
+    // Add Friend
     document.getElementById('addFriendBtn').addEventListener('click', () => {
       this.openAddFriendModal();
     });
@@ -531,17 +399,17 @@ class PoraApp {
 
       if (id) {
         this.state.updateFriend(id, name, nickname, avatar);
-        this.showToast('✅ Friend updated!', 'info');
+        this.showToast('✅ Friend updated!', 'hit');
       } else {
         this.state.addFriend(name, nickname, avatar, points);
-        this.showToast('🎉 Friend added to roast roster!', 'aura');
+        this.showToast('🎉 Friend added to roast roster!', 'hit');
       }
 
       this.closeModal('friendModal');
       this.render();
     });
 
-    // Avatar Selection in Modal
+    // Avatar Picker in Modal
     const avatarPicker = document.getElementById('avatarPicker');
     avatarPicker.addEventListener('click', (e) => {
       const btn = e.target.closest('.avatar-option');
@@ -570,98 +438,89 @@ class PoraApp {
       });
     });
 
-    // Modal Close Buttons (data-close="modalId")
+    // Close Modals
     document.querySelectorAll('[data-close]').forEach(btn => {
       btn.addEventListener('click', () => {
         this.closeModal(btn.dataset.close);
       });
     });
 
-    // Close modal on background click
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
       overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) {
-          overlay.classList.add('hidden');
-        }
+        if (e.target === overlay) overlay.classList.add('hidden');
       });
     });
 
-    // Open Roast Feed Modal
+    // Open Feed Modal
     document.getElementById('openRoastLogBtn').addEventListener('click', () => {
       this.openRoastFeedModal();
     });
 
-    // Clear Roast Logs
+    // Clear Logs
     document.getElementById('clearRoastLogsBtn').addEventListener('click', () => {
-      if (confirm('Are you sure you want to clear the roast logs?')) {
+      if (confirm('Are you sure you want to clear the feed logs?')) {
         this.state.clearLogs();
         this.renderRoastFeed();
         this.render();
-        this.showToast('Logs cleared.', 'info');
+        this.showToast('Feed logs cleared.', 'hit');
       }
     });
 
-    // Open WhatsApp Share Modal
+    // WhatsApp Modal
     document.getElementById('shareWhatsappBtn').addEventListener('click', () => {
       this.openWhatsappModal();
     });
 
-    // Copy WhatsApp Text
     document.getElementById('copyWhatsappBtn').addEventListener('click', () => {
       const text = document.getElementById('whatsappTextPreview').value;
       navigator.clipboard.writeText(text).then(() => {
-        this.showToast('📋 WhatsApp summary copied!', 'aura');
+        this.showToast('📋 WhatsApp summary copied!', 'hit');
       });
     });
 
-    // Direct WhatsApp Button
     document.getElementById('openDirectWhatsappBtn').addEventListener('click', () => {
       const text = encodeURIComponent(document.getElementById('whatsappTextPreview').value);
       window.open(`https://wa.me/?text=${text}`, '_blank');
     });
 
-    // Open Story / Card Generator Modal
+    // Story Card Poster Modal
     document.getElementById('exportImageBtn').addEventListener('click', () => {
       this.openImageCardModal();
     });
 
-    // Download Story Card PNG
     document.getElementById('downloadCardBtn').addEventListener('click', () => {
       this.downloadScorecardPNG();
     });
 
-    // Open Sync / Backup Modal
+    // Sync Modal
     document.getElementById('syncModalBtn').addEventListener('click', () => {
       this.openSyncModal();
     });
 
-    // Copy Shareable URL
     document.getElementById('copyShareUrlBtn').addEventListener('click', () => {
       const input = document.getElementById('shareUrlInput');
       input.select();
       navigator.clipboard.writeText(input.value).then(() => {
-        this.showToast('🔗 Live Share link copied!', 'aura');
+        this.showToast('🔗 Live Share link copied!', 'hit');
       });
     });
 
-    // Export JSON Backup
     document.getElementById('exportJsonBtn').addEventListener('click', () => {
       const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify({
         friends: this.state.friends,
-        roastLogs: this.state.roastLogs,
-        version: '1.0',
+        logs: this.state.logs,
+        version: '2.0',
         exportedAt: new Date().toISOString()
       }, null, 2));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute('href', dataStr);
-      downloadAnchor.setAttribute('download', `pora_points_backup_${new Date().toISOString().slice(0, 10)}.json`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-      this.showToast('💾 Backup downloaded!', 'info');
+      const a = document.createElement('a');
+      a.setAttribute('href', dataStr);
+      a.setAttribute('download', `pora_points_backup_${new Date().toISOString().slice(0, 10)}.json`);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      this.showToast('💾 Backup downloaded!', 'hit');
     });
 
-    // Import JSON Backup
     document.getElementById('importJsonInput').addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -671,11 +530,11 @@ class PoraApp {
           const imported = JSON.parse(event.target.result);
           if (imported && Array.isArray(imported.friends)) {
             this.state.friends = imported.friends;
-            this.state.roastLogs = imported.roastLogs || [];
+            this.state.logs = imported.logs || [];
             this.state.saveState();
             this.render();
             this.closeModal('syncModal');
-            this.showToast('🎉 Backup restored successfully!', 'aura');
+            this.showToast('🎉 Backup restored successfully!', 'hit');
           } else {
             alert('Invalid backup file format!');
           }
@@ -686,50 +545,56 @@ class PoraApp {
       reader.readAsText(file);
     });
 
-    // Reset Points to 10
     document.getElementById('resetPointsBtn').addEventListener('click', () => {
-      if (confirm('Reset all friends to 10 marks to start fresh?')) {
-        this.state.resetAllMarks(10);
+      if (confirm('Reset all squad members to 0 marks to start fresh?')) {
+        this.state.resetAllMarks(0);
         this.render();
         this.closeModal('syncModal');
-        this.showToast('🔄 Marks reset to 10!', 'info');
+        this.showToast('🔄 Marks reset to 0!', 'hit');
       }
     });
 
-    // Roast Reason Form Submit
-    this.roastReasonFormEl.addEventListener('submit', (e) => {
+    // Mark Action Form Submit (Applying + / - with Note)
+    this.markActionFormEl.addEventListener('submit', (e) => {
       e.preventDefault();
-      const victimId = document.getElementById('roastVictimId').value;
-      const customReason = document.getElementById('customReasonInput').value;
-      const ptsRadio = document.querySelector('input[name="roastPts"]:checked');
-      const ptsToDeduct = parseInt(ptsRadio ? ptsRadio.value : '1', 10);
+      const targetId = document.getElementById('actionTargetId').value;
+      const actionType = document.getElementById('actionType').value; // 'hit' | 'backfire'
+      const customNote = document.getElementById('actionNoteInput').value;
 
-      const res = this.state.deductMarks(victimId, ptsToDeduct, customReason);
+      const activeRadio = document.querySelector('input[name="actionPts"]:checked');
+      const pts = parseInt(activeRadio ? activeRadio.value : '1', 10);
+
+      const res = this.state.recordAction(targetId, actionType, pts, customNote);
       if (res) {
         if (this.state.soundEnabled) {
-          if (ptsToDeduct >= 5) {
-            this.sound.playMegaRoastAirhorn();
+          if (actionType === 'hit') {
+            this.sound.playHitSound();
           } else {
-            this.sound.playRoastBonk();
+            this.sound.playBackfireSound();
           }
         }
-        this.showToast(`🔥 ${res.friend.name} was roasted! -${ptsToDeduct} Marks (${res.friend.points} left)`, 'roast');
+
+        this.animateMarks(targetId);
+
+        if (actionType === 'hit') {
+          this.showToast(`🔥 ${res.friend.name} landed a roast! +${pts} Mark (${res.friend.points} total)`, 'hit');
+        } else {
+          this.showToast(`💀 Roast backfired on ${res.friend.name}! -${pts} Mark (${res.friend.points} left)`, 'backfire');
+        }
       }
 
-      this.closeModal('roastReasonModal');
+      this.closeModal('markActionModal');
       this.render();
     });
   }
 
-  // --- Rendering UI ---
+  // --- Rendering Functions ---
   render() {
     const friends = this.state.getFilteredFriends();
-    this.roastCountBadgeEl.textContent = this.state.roastLogs.length;
+    this.roastCountBadgeEl.textContent = this.state.logs.length;
 
-    // Render Podium (if at least 2 friends exist)
     this.renderPodium();
 
-    // Render Friends List
     if (friends.length === 0) {
       this.friendsListEl.innerHTML = '';
       this.emptyStateEl.classList.remove('hidden');
@@ -741,23 +606,28 @@ class PoraApp {
   }
 
   createFriendCardHTML(friend, index) {
-    const isLowest = this.getLowestPointsFriend()?.id === friend.id;
-    const isHighest = this.getHighestPointsFriend()?.id === friend.id;
+    const isTopRoaster = this.getHighestPointsFriend()?.id === friend.id && this.state.friends.length > 1;
+    const isChiefVictim = this.getLowestPointsFriend()?.id === friend.id && this.state.friends.length > 1 && friend.points < 0;
 
     let cardExtraClass = '';
-    let statusText = '';
-
-    if (friend.points <= 0) {
-      cardExtraClass = 'heavily-roasted';
-      statusText = `<span class="feed-pts-tag">🔥 Pora Victim</span>`;
-    } else if (isHighest && this.state.friends.length > 1) {
-      cardExtraClass = 'aura-master';
-      statusText = `<span class="text-aura">👑 Aura Leader</span>`;
-    }
+    if (isTopRoaster) cardExtraClass = 'card-top-roaster';
+    if (isChiefVictim) cardExtraClass = 'card-backfire-victim';
 
     let marksColorClass = 'zero';
     if (friend.points > 0) marksColorClass = 'pos';
     if (friend.points < 0) marksColorClass = 'neg';
+
+    // Latest note snippet
+    let latestNoteHTML = '<span class="friend-latest-note text-dim">No roasts recorded yet</span>';
+    if (friend.latestNote) {
+      const isPos = friend.latestNote.type === 'hit';
+      latestNoteHTML = `
+        <span class="friend-latest-note" title="${this.escapeHTML(friend.latestNote.text)}">
+          <span class="${isPos ? 'note-tag-pos' : 'note-tag-neg'}">${isPos ? '+ ' : '- '}${friend.latestNote.pts}:</span>
+          "${this.escapeHTML(friend.latestNote.text)}"
+        </span>
+      `;
+    }
 
     return `
       <div class="friend-card ${cardExtraClass}" data-id="${friend.id}">
@@ -768,10 +638,10 @@ class PoraApp {
             <div class="friend-name-row">
               <span class="friend-name">${this.escapeHTML(friend.name)}</span>
               ${friend.nickname ? `<span class="friend-tag">${this.escapeHTML(friend.nickname)}</span>` : ''}
+              ${isTopRoaster ? `<span class="badge badge-aura">👑 Roast God</span>` : ''}
+              ${isChiefVictim ? `<span class="badge badge-burn">💀 Backfire Victim</span>` : ''}
             </div>
-            <div class="friend-status">
-              ${statusText}
-            </div>
+            ${latestNoteHTML}
           </div>
         </div>
 
@@ -783,32 +653,21 @@ class PoraApp {
           <span class="marks-label">Marks</span>
         </div>
 
-        <!-- Action Buttons -->
+        <!-- Actions -->
         <div class="friend-actions">
-          <!-- Primary Roast: Deduct 1 mark -->
-          <button class="btn-roast" data-action="roast-1" data-id="${friend.id}" title="Deduct 1 mark for getting roasted">
+          <!-- +1 Roast Hit -->
+          <button class="btn-hit" data-action="hit" data-id="${friend.id}" title="Landed a savage roast (+1 mark & note)">
             <span>🔥</span>
-            <span>-1 Roast</span>
+            <span>+1 Roast</span>
           </button>
 
-          <!-- Quick Mega Roast: Deduct 5 marks -->
-          <button class="btn-quick" data-action="roast-5" data-id="${friend.id}" title="Mega Roast (-5 marks)">
+          <!-- -1 Roast Backfire -->
+          <button class="btn-backfire" data-action="backfire" data-id="${friend.id}" title="Failed at roasting & got cooked (-1 mark & note)">
             <span>💀</span>
-            <span>-5</span>
+            <span>-1 Backfire</span>
           </button>
 
-          <!-- Comeback: +1 mark -->
-          <button class="btn-quick" data-action="comeback" data-id="${friend.id}" title="Comeback / Aura Gain (+1 mark)">
-            <span>🛡️</span>
-            <span>+1</span>
-          </button>
-
-          <!-- Log Reason -->
-          <button class="btn-quick" data-action="reason" data-id="${friend.id}" title="Log Reason">
-            <span>📝</span>
-          </button>
-
-          <!-- More Options Menu (Edit / Delete) -->
+          <!-- Edit/Delete Menu -->
           <button class="btn-more-menu" data-action="menu" data-id="${friend.id}" title="Options">
             ⋮
           </button>
@@ -825,44 +684,21 @@ class PoraApp {
         const friend = this.state.friends.find(f => f.id === id);
         if (!friend) return;
 
-        if (action === 'roast-1') {
-          // Deduct 1 Mark
-          const res = this.state.deductMarks(id, 1, 'Quick roast in canteen 🔥');
-          if (res) {
-            if (this.state.soundEnabled) this.sound.playRoastBonk();
-            this.animateMarks(id);
-            this.showToast(`🔥 ${friend.name} was roasted! -1 Mark (${friend.points} left)`, 'roast');
-            this.render();
-          }
-        } else if (action === 'roast-5') {
-          // Mega Roast (-5)
-          const res = this.state.deductMarks(id, 5, 'Savage Mega Roast! 💀');
-          if (res) {
-            if (this.state.soundEnabled) this.sound.playMegaRoastAirhorn();
-            this.animateMarks(id);
-            this.showToast(`💀 MEGA ROAST! ${friend.name} lost 5 marks! (${friend.points} left)`, 'roast');
-            this.render();
-          }
-        } else if (action === 'comeback') {
-          // Comeback (+1)
-          this.state.addMarks(id, 1);
-          if (this.state.soundEnabled) this.sound.playComebackChime();
-          this.animateMarks(id);
-          this.showToast(`🛡️ ${friend.name} made a comeback! +1 Mark (${friend.points} total)`, 'aura');
-          this.render();
-        } else if (action === 'reason') {
-          // Open Reason Modal
-          this.openRoastReasonModal(friend);
+        if (action === 'hit') {
+          // Open Note Modal for Roast Hit (+)
+          this.openMarkActionModal(friend, 'hit');
+        } else if (action === 'backfire') {
+          // Open Note Modal for Roast Backfire (-)
+          this.openMarkActionModal(friend, 'backfire');
         } else if (action === 'menu') {
-          // Edit or Delete Prompt
           const choice = prompt(`Options for "${friend.name}":\n1: Edit details\n2: Delete friend\n(Type 1 or 2):`);
           if (choice === '1') {
             this.openEditFriendModal(friend);
           } else if (choice === '2') {
-            if (confirm(`Remove "${friend.name}" from the roast board?`)) {
+            if (confirm(`Remove "${friend.name}" from the roast roster?`)) {
               this.state.deleteFriend(id);
               this.render();
-              this.showToast('Friend removed.', 'info');
+              this.showToast('Friend removed.', 'hit');
             }
           }
         }
@@ -874,12 +710,12 @@ class PoraApp {
     const el = document.getElementById(`marks_${id}`);
     if (el) {
       el.classList.remove('pop-anim');
-      void el.offsetWidth; // trigger reflow
+      void el.offsetWidth;
       el.classList.add('pop-anim');
     }
   }
 
-  // Render Top 3 Showcase (Most Roasted vs Aura Master)
+  // Render Podium Showcase
   renderPodium() {
     if (this.state.friends.length < 2) {
       this.podiumSectionEl.classList.add('hidden');
@@ -887,38 +723,29 @@ class PoraApp {
     }
     this.podiumSectionEl.classList.remove('hidden');
 
-    // Friends sorted ascending by marks (lowest marks first)
-    const sortedAsc = [...this.state.friends].sort((a, b) => a.points - b.points);
+    // Sorted descending by marks (highest first)
+    const sortedDesc = [...this.state.friends].sort((a, b) => b.points - a.points);
+    const topRoaster = sortedDesc[0];
+    const secondRoaster = sortedDesc[1];
+    const chiefVictim = sortedDesc[sortedDesc.length - 1]; // Lowest marks
 
-    // Supreme Roast Victim (Lowest marks)
-    const victim1 = sortedAsc[0];
-    // 2nd Roast Victim
-    const victim2 = sortedAsc[1];
-    // Aura King (Highest marks)
-    const auraKing = sortedAsc[sortedAsc.length - 1];
+    // Rank 1: Top Roaster
+    const p1 = document.getElementById('podiumRank1');
+    p1.querySelector('.podium-avatar').textContent = topRoaster.avatar;
+    p1.querySelector('.podium-name').textContent = topRoaster.name;
+    p1.querySelector('.podium-points').textContent = `${topRoaster.points > 0 ? '+' : ''}${topRoaster.points} Marks`;
 
-    // Populate Victim 1
-    const p1 = document.getElementById('podiumVictim1');
-    p1.querySelector('.podium-avatar').textContent = victim1.avatar;
-    p1.querySelector('.podium-name').textContent = victim1.name;
-    p1.querySelector('.podium-points').textContent = `${victim1.points > 0 ? '+' : ''}${victim1.points} Marks`;
+    // Rank 2
+    const p2 = document.getElementById('podiumRank2');
+    p2.querySelector('.podium-avatar').textContent = secondRoaster.avatar;
+    p2.querySelector('.podium-name').textContent = secondRoaster.name;
+    p2.querySelector('.podium-points').textContent = `${secondRoaster.points > 0 ? '+' : ''}${secondRoaster.points} Marks`;
 
-    // Populate Victim 2
-    const p2 = document.getElementById('podiumVictim2');
-    p2.querySelector('.podium-avatar').textContent = victim2.avatar;
-    p2.querySelector('.podium-name').textContent = victim2.name;
-    p2.querySelector('.podium-points').textContent = `${victim2.points > 0 ? '+' : ''}${victim2.points} Marks`;
-
-    // Populate Aura King
-    const pAura = document.getElementById('podiumAuraKing');
-    pAura.querySelector('.podium-avatar').textContent = auraKing.avatar;
-    pAura.querySelector('.podium-name').textContent = auraKing.name;
-    pAura.querySelector('.podium-points').textContent = `${auraKing.points > 0 ? '+' : ''}${auraKing.points} Marks`;
-  }
-
-  getLowestPointsFriend() {
-    if (!this.state.friends.length) return null;
-    return [...this.state.friends].sort((a, b) => a.points - b.points)[0];
+    // Chief Backfire Victim (Lowest Marks)
+    const pVictim = document.getElementById('podiumVictim');
+    pVictim.querySelector('.podium-avatar').textContent = chiefVictim.avatar;
+    pVictim.querySelector('.podium-name').textContent = chiefVictim.name;
+    pVictim.querySelector('.podium-points').textContent = `${chiefVictim.points > 0 ? '+' : ''}${chiefVictim.points} Marks`;
   }
 
   getHighestPointsFriend() {
@@ -926,33 +753,139 @@ class PoraApp {
     return [...this.state.friends].sort((a, b) => b.points - a.points)[0];
   }
 
-  // --- Modals Operations ---
+  getLowestPointsFriend() {
+    if (!this.state.friends.length) return null;
+    return [...this.state.friends].sort((a, b) => a.points - b.points)[0];
+  }
+
+  // --- Mark Action Modal (Giving or Reducing Marks with a Note) ---
+  openMarkActionModal(friend, actionType = 'hit') {
+    this.sound.playClick();
+    document.getElementById('actionTargetId').value = friend.id;
+    document.getElementById('actionType').value = actionType;
+    document.getElementById('actionTargetName').textContent = friend.name;
+    document.getElementById('actionTargetAvatar').textContent = friend.avatar;
+    document.getElementById('actionNoteInput').value = '';
+
+    const banner = document.getElementById('actionTargetBanner');
+    const titleEl = document.getElementById('actionModalTitle');
+    const labelEl = document.getElementById('actionTargetLabel');
+    const badgeEl = document.getElementById('actionAmountBadge');
+    const confirmBtn = document.getElementById('confirmActionBtn');
+    const selectorRow = document.getElementById('pointsSelectorRow');
+    const quickNotesList = document.getElementById('quickNotesList');
+
+    if (actionType === 'hit') {
+      banner.className = 'action-target-card type-add';
+      titleEl.textContent = `🔥 Award Marks: ${friend.name}`;
+      labelEl.textContent = 'Landed a Savage Roast (+ Marks)';
+      badgeEl.textContent = '+1';
+      confirmBtn.className = 'btn btn-primary';
+      confirmBtn.textContent = 'Award + Marks 🔥';
+
+      // Options: +1, +2, +3
+      selectorRow.innerHTML = `
+        <label class="point-pill-radio active">
+          <input type="radio" name="actionPts" value="1" checked>
+          <span>+1 Clean Roast</span>
+        </label>
+        <label class="point-pill-radio">
+          <input type="radio" name="actionPts" value="2">
+          <span>+2 Big Burn</span>
+        </label>
+        <label class="point-pill-radio">
+          <input type="radio" name="actionPts" value="5">
+          <span>+5 Fatality!</span>
+        </label>
+      `;
+
+      // Preset suggestions for hits
+      const presets = NOTE_PRESETS.hit;
+      quickNotesList.innerHTML = presets.map(p => `
+        <button type="button" class="quick-note-pill" data-text="${this.escapeHTML(p)}">${this.escapeHTML(p)}</button>
+      `).join('');
+
+    } else {
+      banner.className = 'action-target-card type-deduct';
+      titleEl.textContent = `💀 Deduct Marks: ${friend.name}`;
+      labelEl.textContent = 'Roast Backfired & Got Clowned (- Marks)';
+      badgeEl.textContent = '-1';
+      confirmBtn.className = 'btn btn-danger';
+      confirmBtn.textContent = 'Deduct - Marks 💀';
+
+      // Options: 1, 2, 5
+      selectorRow.innerHTML = `
+        <label class="point-pill-radio active">
+          <input type="radio" name="actionPts" value="1" checked>
+          <span>-1 Roast Backfired</span>
+        </label>
+        <label class="point-pill-radio">
+          <input type="radio" name="actionPts" value="2">
+          <span>-2 Hard Choke</span>
+        </label>
+        <label class="point-pill-radio">
+          <input type="radio" name="actionPts" value="5">
+          <span>-5 Total Self-Burn</span>
+        </label>
+      `;
+
+      // Preset suggestions for backfires
+      const presets = NOTE_PRESETS.backfire;
+      quickNotesList.innerHTML = presets.map(p => `
+        <button type="button" class="quick-note-pill" data-text="${this.escapeHTML(p)}">${this.escapeHTML(p)}</button>
+      `).join('');
+    }
+
+    // Attach click listeners for radio pill active states
+    selectorRow.querySelectorAll('.point-pill-radio').forEach(pill => {
+      pill.addEventListener('click', () => {
+        selectorRow.querySelectorAll('.point-pill-radio').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        const input = pill.querySelector('input');
+        if (input) {
+          input.checked = true;
+          badgeEl.textContent = (actionType === 'hit' ? '+' : '-') + input.value;
+        }
+      });
+    });
+
+    // Attach click listeners for note pills
+    quickNotesList.querySelectorAll('.quick-note-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        quickNotesList.querySelectorAll('.quick-note-pill').forEach(p => p.classList.remove('selected'));
+        pill.classList.add('selected');
+        document.getElementById('actionNoteInput').value = pill.dataset.text;
+      });
+    });
+
+    this.markActionModalEl.classList.remove('hidden');
+    document.getElementById('actionNoteInput').focus();
+  }
+
+  // --- Add/Edit Friend Modal ---
   openAddFriendModal() {
     this.sound.playClick();
-    document.getElementById('friendModalTitle').textContent = TRANSLATIONS[this.state.currentLang].modalAddTitle;
+    document.getElementById('friendModalTitle').textContent = 'Add Squad Member';
     document.getElementById('editFriendId').value = '';
     document.getElementById('friendNameInput').value = '';
     document.getElementById('friendNicknameInput').value = '';
     document.getElementById('startingPointsGroup').classList.remove('hidden');
-    document.getElementById('startingPointsInput').value = '10';
+    document.getElementById('startingPointsInput').value = '0';
 
-    // Reset avatar picker
-    this.selectAvatarInModal('🤡');
-
+    this.selectAvatarInModal('😎');
     this.friendModalEl.classList.remove('hidden');
     document.getElementById('friendNameInput').focus();
   }
 
   openEditFriendModal(friend) {
     this.sound.playClick();
-    document.getElementById('friendModalTitle').textContent = TRANSLATIONS[this.state.currentLang].modalEditTitle;
+    document.getElementById('friendModalTitle').textContent = 'Edit Squad Member';
     document.getElementById('editFriendId').value = friend.id;
     document.getElementById('friendNameInput').value = friend.name;
     document.getElementById('friendNicknameInput').value = friend.nickname || '';
     document.getElementById('startingPointsGroup').classList.add('hidden');
 
-    this.selectAvatarInModal(friend.avatar || '🤡');
-
+    this.selectAvatarInModal(friend.avatar || '😎');
     this.friendModalEl.classList.remove('hidden');
     document.getElementById('friendNameInput').focus();
   }
@@ -969,31 +902,7 @@ class PoraApp {
     });
   }
 
-  openRoastReasonModal(friend) {
-    this.sound.playClick();
-    document.getElementById('roastVictimId').value = friend.id;
-    document.getElementById('roastVictimName').textContent = friend.name;
-    document.getElementById('roastVictimAvatar').textContent = friend.avatar;
-    document.getElementById('customReasonInput').value = '';
-
-    // Populate quick reasons
-    const reasons = PRESET_ROAST_REASONS[this.state.currentLang] || PRESET_ROAST_REASONS.si;
-    const container = document.getElementById('quickReasonsList');
-    container.innerHTML = reasons.map(r => `
-      <button type="button" class="quick-reason-pill" data-text="${this.escapeHTML(r)}">${this.escapeHTML(r)}</button>
-    `).join('');
-
-    container.querySelectorAll('.quick-reason-pill').forEach(pill => {
-      pill.addEventListener('click', () => {
-        container.querySelectorAll('.quick-reason-pill').forEach(p => p.classList.remove('selected'));
-        pill.classList.add('selected');
-        document.getElementById('customReasonInput').value = pill.dataset.text;
-      });
-    });
-
-    this.roastReasonModalEl.classList.remove('hidden');
-  }
-
+  // --- Roast & Backfire Feed ---
   openRoastFeedModal() {
     this.sound.playClick();
     this.renderRoastFeed();
@@ -1004,57 +913,66 @@ class PoraApp {
     const listEl = document.getElementById('roastFeedList');
     const emptyEl = document.getElementById('feedEmptyState');
 
-    if (this.state.roastLogs.length === 0) {
+    if (this.state.logs.length === 0) {
       listEl.innerHTML = '';
       emptyEl.classList.remove('hidden');
     } else {
       emptyEl.classList.add('hidden');
-      listEl.innerHTML = this.state.roastLogs.map(log => {
+      listEl.innerHTML = this.state.logs.map(log => {
         const timeStr = new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const isHit = log.actionType === 'hit';
+
         return `
-          <div class="feed-item">
-            <span class="feed-item-icon">${log.avatar || '🤡'}</span>
+          <div class="feed-item ${isHit ? 'feed-hit' : 'feed-backfire'}">
+            <span class="feed-item-icon">${log.avatar || '😎'}</span>
             <div class="feed-content">
               <div class="feed-header">
                 <span class="feed-victim">${this.escapeHTML(log.friendName)}</span>
                 <span class="feed-time">${timeStr}</span>
               </div>
-              <div class="feed-reason">"${this.escapeHTML(log.reason)}"</div>
+              <div class="feed-reason">"${this.escapeHTML(log.note)}"</div>
             </div>
-            <div class="feed-pts-tag">-${log.ptsDeducted} Mark</div>
+            <div class="feed-pts-tag ${isHit ? 'pos' : 'neg'}">
+              ${isHit ? `+${log.pts} Mark 🔥` : `-${log.pts} Mark 💀`}
+            </div>
           </div>
         `;
       }).join('');
     }
   }
 
+  // --- WhatsApp Share ---
   openWhatsappModal() {
     this.sound.playClick();
-    const sortedAsc = [...this.state.friends].sort((a, b) => a.points - b.points);
-    const auraKing = sortedAsc[sortedAsc.length - 1];
+    const sortedDesc = [...this.state.friends].sort((a, b) => b.points - a.points);
+    const topRoaster = sortedDesc[0];
+    const chiefVictim = sortedDesc[sortedDesc.length - 1];
 
-    let message = `🔥 *පෝරා පොයින්ට්ස් (PORA POINTS) - UNIVERSITY STANDINGS* 🔥\n`;
-    message += `───────────────────────\n`;
-    message += `💀 *වැඩිපුරම පෝර කාපු අය (Most Roasted):*\n`;
-
-    sortedAsc.slice(0, 5).forEach((f, idx) => {
-      const crown = idx === 0 ? '👑 [පෝර රජා] ' : '';
-      message += `${idx + 1}. ${f.avatar} *${f.name}*: ${f.points > 0 ? '+' : ''}${f.points} Marks ${crown}\n`;
-    });
-
-    if (auraKing && auraKing.points > 0) {
-      message += `\n🛡️ *Aura Master:* ${auraKing.avatar} ${auraKing.name} (${auraKing.points} Marks)\n`;
+    let message = `🔥 *PORA POINTS - UNIVERSITY ROAST & BACKFIRE LEADERBOARD* 🔥\n`;
+    message += `─────────────────────────\n`;
+    message += `👑 *#1 Roast God:* ${topRoaster?.avatar || ''} ${topRoaster?.name} (${topRoaster?.points > 0 ? '+' : ''}${topRoaster?.points} Marks)\n`;
+    
+    if (chiefVictim && chiefVictim.id !== topRoaster?.id) {
+      message += `💀 *Chief Backfire Victim:* ${chiefVictim.avatar} ${chiefVictim.name} (${chiefVictim.points} Marks)\n`;
     }
 
-    message += `───────────────────────\n`;
+    message += `\n📋 *Current Squad Standings:*\n`;
+    sortedDesc.forEach((f, idx) => {
+      const markStr = f.points > 0 ? `+${f.points}` : `${f.points}`;
+      let noteSnippet = f.latestNote ? ` | Note: "${f.latestNote.text}"` : '';
+      message += `${idx + 1}. ${f.avatar} *${f.name}*: ${markStr} Marks${noteSnippet}\n`;
+    });
+
+    message += `─────────────────────────\n`;
     message += `📅 Updated: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}\n`;
-    message += `👉 Live Link: ${window.location.href.split('#')[0]}\n`;
-    message += `යාලුවෙක් පෝර කෑවොත් ලකුණු අඩු කරන්න (-1)! 🔥`;
+    message += `👉 Live Board: ${window.location.href.split('#')[0]}\n`;
+    message += `Rule: Savage roasts earn +1 mark. Failed roasts lose -1 mark! 🔥💀`;
 
     document.getElementById('whatsappTextPreview').value = message;
     this.whatsappModalEl.classList.remove('hidden');
   }
 
+  // --- Story Card Poster (Canvas) ---
   openImageCardModal() {
     this.sound.playClick();
     this.imageCardModalEl.classList.remove('hidden');
@@ -1064,7 +982,6 @@ class PoraApp {
   generateStoryCardCanvas() {
     const canvas = document.getElementById('scorecardCanvas');
     const ctx = canvas.getContext('2d');
-
     const width = 800;
     const height = 1000;
     canvas.width = width;
@@ -1072,40 +989,39 @@ class PoraApp {
 
     // Background gradient
     const bgGradient = ctx.createLinearGradient(0, 0, width, height);
-    bgGradient.addColorStop(0, '#0d111e');
-    bgGradient.addColorStop(0.5, '#13192e');
-    bgGradient.addColorStop(1, '#090c15');
+    bgGradient.addColorStop(0, '#0a0d18');
+    bgGradient.addColorStop(0.5, '#12172b');
+    bgGradient.addColorStop(1, '#090b14');
     ctx.fillStyle = bgGradient;
     ctx.fillRect(0, 0, width, height);
 
-    // Decorative Neon Glows
-    const glow1 = ctx.createRadialGradient(700, 100, 10, 700, 100, 300);
-    glow1.addColorStop(0, 'rgba(255, 87, 34, 0.35)');
+    // Glowing accents
+    const glow1 = ctx.createRadialGradient(720, 120, 10, 720, 120, 320);
+    glow1.addColorStop(0, 'rgba(16, 185, 129, 0.35)');
     glow1.addColorStop(1, 'transparent');
     ctx.fillStyle = glow1;
     ctx.fillRect(0, 0, width, height);
 
-    const glow2 = ctx.createRadialGradient(100, 850, 10, 100, 850, 300);
-    glow2.addColorStop(0, 'rgba(168, 85, 247, 0.35)');
+    const glow2 = ctx.createRadialGradient(80, 850, 10, 80, 850, 320);
+    glow2.addColorStop(0, 'rgba(239, 68, 68, 0.3)');
     glow2.addColorStop(1, 'transparent');
     ctx.fillStyle = glow2;
     ctx.fillRect(0, 0, width, height);
 
-    // Header Title
+    // Header
     ctx.textAlign = 'center';
     ctx.font = 'bold 44px sans-serif';
     ctx.fillStyle = '#ff5722';
-    ctx.fillText('🔥 පෝරා පොයින්ට්ස් 🔥', width / 2, 75);
+    ctx.fillText('🔥 PORA POINTS 🔥', width / 2, 75);
 
-    ctx.font = 'bold 20px sans-serif';
+    ctx.font = 'bold 18px sans-serif';
     ctx.fillStyle = '#a855f7';
-    ctx.fillText('PORA & AURA SCOREBOARD', width / 2, 110);
+    ctx.fillText('ROAST & BACKFIRE LEADERBOARD', width / 2, 110);
 
-    ctx.font = '15px sans-serif';
+    ctx.font = '14px sans-serif';
     ctx.fillStyle = '#94a3b8';
-    ctx.fillText('කැන්ටිමේ සහ බැච් එකේ සදාචාර සම්පන්න රෝස්ට් ලීඩර්බෝඩ් එක', width / 2, 135);
+    ctx.fillText('Land a roast (+1 mark) • Roast backfires & you get cooked (-1 mark)', width / 2, 135);
 
-    // Divider Line
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -1113,94 +1029,94 @@ class PoraApp {
     ctx.lineTo(750, 155);
     ctx.stroke();
 
-    // Section 1: Top Most Roasted (#1 Supreme Victim)
-    const sortedAsc = [...this.state.friends].sort((a, b) => a.points - b.points);
-    const victim1 = sortedAsc[0];
+    // Top Roaster Highlight Card
+    const sortedDesc = [...this.state.friends].sort((a, b) => b.points - a.points);
+    const topRoaster = sortedDesc[0];
 
-    if (victim1) {
-      // Big highlight card
-      ctx.fillStyle = 'rgba(239, 68, 68, 0.15)';
-      ctx.strokeStyle = 'rgba(239, 68, 68, 0.5)';
+    if (topRoaster) {
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.15)';
+      ctx.strokeStyle = 'rgba(16, 185, 129, 0.5)';
       ctx.lineWidth = 2;
-      this.roundRect(ctx, 50, 180, 700, 150, 18);
+      this.roundRect(ctx, 50, 180, 700, 140, 18);
       ctx.fill();
       ctx.stroke();
 
       ctx.font = 'bold 16px sans-serif';
-      ctx.fillStyle = '#f87171';
+      ctx.fillStyle = '#34d399';
       ctx.textAlign = 'left';
-      ctx.fillText('💀 #1 පෝර රජා (SUPREME ROAST VICTIM):', 80, 215);
+      ctx.fillText('👑 #1 ROAST GOD (SUPREME MARKS):', 80, 215);
 
-      ctx.font = '54px sans-serif';
-      ctx.fillText(victim1.avatar || '🤡', 80, 290);
+      ctx.font = '52px sans-serif';
+      ctx.fillText(topRoaster.avatar || '😎', 80, 285);
 
-      ctx.font = 'bold 30px sans-serif';
+      ctx.font = 'bold 28px sans-serif';
       ctx.fillStyle = '#ffffff';
-      ctx.fillText(victim1.name, 160, 260);
+      ctx.fillText(topRoaster.name, 155, 255);
 
-      ctx.font = '18px sans-serif';
+      ctx.font = '16px sans-serif';
       ctx.fillStyle = '#94a3b8';
-      ctx.fillText(victim1.nickname ? `(${victim1.nickname})` : 'University Legend', 160, 290);
+      const noteStr = topRoaster.latestNote ? `Latest: "${topRoaster.latestNote.text}"` : (topRoaster.nickname ? `(${topRoaster.nickname})` : 'Campus Legend');
+      ctx.fillText(noteStr.length > 40 ? noteStr.slice(0, 37) + '...' : noteStr, 155, 285);
 
       ctx.textAlign = 'right';
-      ctx.font = 'bold 38px sans-serif';
-      ctx.fillStyle = '#ef4444';
-      ctx.fillText(`${victim1.points > 0 ? '+' : ''}${victim1.points} Marks`, 720, 275);
+      ctx.font = 'bold 36px sans-serif';
+      ctx.fillStyle = '#10b981';
+      ctx.fillText(`${topRoaster.points > 0 ? '+' : ''}${topRoaster.points} Marks`, 720, 270);
     }
 
     // Leaderboard Table
     ctx.textAlign = 'left';
     ctx.font = 'bold 20px sans-serif';
     ctx.fillStyle = '#f8fafc';
-    ctx.fillText('📋 සම්පූර්ණ ලකුණු සටහන (All Friends):', 50, 375);
+    ctx.fillText('📋 Full Squad Standings:', 50, 365);
 
-    let startY = 415;
+    let startY = 405;
     const maxRows = 7;
-    const displayList = sortedAsc.slice(0, maxRows);
+    const displayList = sortedDesc.slice(0, maxRows);
 
     displayList.forEach((f, idx) => {
-      // Card row background
       ctx.fillStyle = idx % 2 === 0 ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.02)';
-      this.roundRect(ctx, 50, startY - 26, 700, 52, 10);
+      this.roundRect(ctx, 50, startY - 26, 700, 54, 10);
       ctx.fill();
 
       // Rank
-      ctx.fillStyle = idx === 0 ? '#ef4444' : '#94a3b8';
+      ctx.fillStyle = idx === 0 ? '#10b981' : '#94a3b8';
       ctx.font = 'bold 20px sans-serif';
       ctx.textAlign = 'left';
-      ctx.fillText(`#${idx + 1}`, 70, startY + 6);
+      ctx.fillText(`#${idx + 1}`, 70, startY + 8);
 
       // Avatar & Name
       ctx.font = '24px sans-serif';
-      ctx.fillText(f.avatar || '🤡', 125, startY + 8);
+      ctx.fillText(f.avatar || '😎', 125, startY + 10);
 
-      ctx.font = 'bold 20px sans-serif';
+      ctx.font = 'bold 19px sans-serif';
       ctx.fillStyle = '#ffffff';
-      ctx.fillText(f.name, 175, startY + 7);
+      ctx.fillText(f.name, 175, startY + 8);
 
-      if (f.nickname) {
-        ctx.font = '14px sans-serif';
+      // Latest note preview
+      if (f.latestNote) {
+        ctx.font = '13px sans-serif';
         ctx.fillStyle = '#64748b';
-        ctx.fillText(`(${f.nickname})`, 175 + ctx.measureText(f.name).width + 12, startY + 5);
+        const noteShort = `• "${f.latestNote.text}"`;
+        ctx.fillText(noteShort.length > 35 ? noteShort.slice(0, 32) + '...' : noteShort, 185 + ctx.measureText(f.name).width, startY + 8);
       }
 
       // Marks
       ctx.textAlign = 'right';
       ctx.font = 'bold 22px sans-serif';
       ctx.fillStyle = f.points < 0 ? '#ef4444' : (f.points > 0 ? '#10b981' : '#94a3b8');
-      ctx.fillText(`${f.points > 0 ? '+' : ''}${f.points} Marks`, 720, startY + 7);
+      ctx.fillText(`${f.points > 0 ? '+' : ''}${f.points} Marks`, 720, startY + 8);
 
-      startY += 64;
+      startY += 65;
     });
 
-    // Footer Watermark
+    // Watermark
     ctx.textAlign = 'center';
     ctx.font = '14px sans-serif';
     ctx.fillStyle = '#64748b';
-    ctx.fillText(`Pora Points • Updated on ${new Date().toLocaleDateString()} • University Edition`, width / 2, 940);
+    ctx.fillText(`Pora Points • Live Leaderboard • ${new Date().toLocaleDateString()}`, width / 2, 940);
   }
 
-  // Helper to draw rounded rectangle on Canvas
   roundRect(ctx, x, y, width, height, radius) {
     ctx.beginPath();
     ctx.moveTo(x + radius, y);
@@ -1217,23 +1133,22 @@ class PoraApp {
 
   downloadScorecardPNG() {
     const canvas = document.getElementById('scorecardCanvas');
-    const link = document.createElement('a');
-    link.download = `pora_points_story_${new Date().toISOString().slice(0, 10)}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-    this.showToast('📸 Scorecard Image downloaded!', 'aura');
+    const a = document.createElement('a');
+    a.download = `pora_points_story_${new Date().toISOString().slice(0, 10)}.png`;
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+    this.showToast('📸 Poster image downloaded!', 'hit');
   }
 
+  // --- Sync URL ---
   openSyncModal() {
     this.sound.playClick();
-    // Generate shareable URL with encoded state
     const dataStr = btoa(unescape(encodeURIComponent(JSON.stringify({
       friends: this.state.friends,
-      roastLogs: this.state.roastLogs
+      logs: this.state.logs
     }))));
     const shareUrl = `${window.location.origin}${window.location.pathname}#sync=${dataStr}`;
     document.getElementById('shareUrlInput').value = shareUrl;
-
     this.syncModalEl.classList.remove('hidden');
   }
 
@@ -1243,9 +1158,9 @@ class PoraApp {
         const raw = window.location.hash.replace('#sync=', '');
         const decoded = JSON.parse(decodeURIComponent(escape(atob(raw))));
         if (decoded && Array.isArray(decoded.friends)) {
-          if (confirm('A shared Pora Points scoreboard was detected from the link! Would you like to import it?')) {
+          if (confirm('A shared Pora Points scoreboard was detected from this link! Would you like to import it?')) {
             this.state.friends = decoded.friends;
-            this.state.roastLogs = decoded.roastLogs || [];
+            this.state.logs = decoded.logs || [];
             this.state.saveState();
             history.replaceState(null, null, window.location.pathname);
             alert('Board synced successfully!');
@@ -1262,35 +1177,15 @@ class PoraApp {
     if (modal) modal.classList.add('hidden');
   }
 
-  showToast(message, type = 'info') {
+  showToast(message, type = 'hit') {
     const container = document.getElementById('toastContainer');
     const toast = document.createElement('div');
-    toast.className = `toast ${type === 'roast' ? 'toast-roast' : (type === 'aura' ? 'toast-aura' : '')}`;
+    toast.className = `toast ${type === 'backfire' ? 'toast-backfire' : 'toast-hit'}`;
     toast.innerHTML = `<span>${message}</span>`;
     container.appendChild(toast);
     setTimeout(() => {
       toast.remove();
-    }, 3000);
-  }
-
-  updateLanguageUI() {
-    const lang = this.state.currentLang;
-    const dict = TRANSLATIONS[lang];
-    document.getElementById('langLabel').textContent = lang === 'si' ? 'English' : 'සිංහල';
-
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-      const key = el.dataset.i18n;
-      if (dict[key]) {
-        el.textContent = dict[key];
-      }
-    });
-
-    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-      const key = el.dataset.i18nPlaceholder;
-      if (dict[key]) {
-        el.placeholder = dict[key];
-      }
-    });
+    }, 3200);
   }
 
   escapeHTML(str) {
@@ -1305,7 +1200,7 @@ class PoraApp {
   }
 }
 
-// Start application when DOM is ready
+// Start application
 document.addEventListener('DOMContentLoaded', () => {
   window.poraApp = new PoraApp();
 });

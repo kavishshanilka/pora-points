@@ -1,6 +1,6 @@
 /* ============================================================
-   PORA POINTS - UNIVERSITY ROAST & AURA COUNTER
-   Theme: Cyber-Arcade Dark / Neon Fire & Aura
+   PORA POINTS - UNIVERSITY ROAST & BACKFIRE LEADERBOARD
+   Theme: Cyber-Arcade Dark / Neon Fire, Aura & Toxic Red
    ============================================================ */
 
 :root {
@@ -22,7 +22,9 @@
   --accent-cyan: #06b6d4;
   --accent-gold: #f59e0b;
   --accent-green: #10b981;
+  --accent-green-glow: rgba(16, 185, 129, 0.3);
   --accent-red: #ef4444;
+  --accent-red-glow: rgba(239, 68, 68, 0.35);
 
   --radius-sm: 8px;
   --radius-md: 14px;
@@ -31,9 +33,8 @@
 
   --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.25);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
-  --shadow-glow: 0 0 25px var(--accent-fire-glow);
 
-  --font-family: 'Plus Jakarta Sans', 'Noto Sans Sinhala', system-ui, -apple-system, sans-serif;
+  --font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -52,10 +53,9 @@ body {
   line-height: 1.5;
   overflow-x: hidden;
   position: relative;
-  selection-background-color: var(--accent-fire);
 }
 
-/* Background Atmospheric Glows */
+/* Background Atmosphere Glows */
 .bg-glow {
   position: fixed;
   width: 500px;
@@ -79,11 +79,11 @@ body {
   background: radial-gradient(circle, var(--accent-purple) 0%, transparent 70%);
 }
 
-/* App Container */
+/* Main Container */
 .app-container {
   position: relative;
   z-index: 1;
-  max-width: 900px;
+  max-width: 920px;
   margin: 0 auto;
   padding: 1.5rem 1rem 3rem 1rem;
   display: flex;
@@ -92,7 +92,7 @@ body {
 }
 
 /* ============================================================
-   HEADER & ACTIONS
+   HEADER & CONTROLS
    ============================================================ */
 .app-header {
   display: flex;
@@ -137,16 +137,17 @@ body {
   line-height: 1.15;
 }
 
-.sinhala-title {
+.main-title {
   font-size: 1.6rem;
   font-weight: 800;
+  letter-spacing: 0.5px;
   background: linear-gradient(135deg, #ff784e 0%, #ff5722 50%, #f59e0b 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-.english-title {
-  font-size: 0.75rem;
+.sub-title {
+  font-size: 0.72rem;
   letter-spacing: 2px;
   font-weight: 700;
   color: var(--accent-purple);
@@ -185,10 +186,6 @@ body {
   transform: translateY(-1px);
 }
 
-.control-btn:active {
-  transform: translateY(1px);
-}
-
 /* Action Bar */
 .action-bar {
   display: grid;
@@ -219,14 +216,14 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #ff5722 0%, #e64a19 100%);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: #fff;
-  box-shadow: 0 4px 14px rgba(255, 87, 34, 0.35);
+  box-shadow: 0 4px 14px var(--accent-green-glow);
 }
 
 .btn-primary:hover {
-  box-shadow: 0 6px 20px rgba(255, 87, 34, 0.5);
   filter: brightness(1.1);
+  box-shadow: 0 6px 20px var(--accent-green-glow);
 }
 
 .btn-secondary {
@@ -255,8 +252,9 @@ body {
 }
 
 .btn-danger {
-  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: #fff;
+  box-shadow: 0 4px 14px var(--accent-red-glow);
 }
 
 .btn-danger-soft {
@@ -278,7 +276,7 @@ body {
 }
 
 /* ============================================================
-   PODIUM HIGHLIGHTS (Most Roasted vs Aura King)
+   PODIUM HIGHLIGHTS (Top Roaster vs Chief Backfire Victim)
    ============================================================ */
 .podium-section {
   background: var(--bg-card);
@@ -329,19 +327,19 @@ body {
   transform: translateY(-4px);
 }
 
-/* #1 Most Roasted (Lowest Marks) - Burn effect */
-.rank-victim-1 {
-  border-color: rgba(239, 68, 68, 0.5);
-  background: linear-gradient(180deg, rgba(239, 68, 68, 0.15) 0%, rgba(14, 18, 32, 0.9) 100%);
-  box-shadow: 0 0 24px rgba(239, 68, 68, 0.2);
+/* #1 Roast God (Highest Marks) */
+.rank-king {
+  border-color: rgba(16, 185, 129, 0.5);
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.15) 0%, rgba(14, 18, 32, 0.9) 100%);
+  box-shadow: 0 0 24px var(--accent-green-glow);
   order: 2;
   padding-bottom: 1.75rem;
 }
 
-.burn-icon {
-  font-size: 1.5rem;
+.crown-icon {
+  font-size: 1.6rem;
   position: absolute;
-  top: -14px;
+  top: -15px;
 }
 
 .podium-avatar {
@@ -350,19 +348,37 @@ body {
   line-height: 1;
 }
 
+.aura-glow {
+  filter: drop-shadow(0 0 14px rgba(16, 185, 129, 0.7));
+}
+
 .burn-glow {
   filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.7));
-  animation: shakeBurn 2s infinite ease-in-out;
+  animation: shakeClown 2.5s infinite ease-in-out;
 }
 
-@keyframes shakeBurn {
+@keyframes shakeClown {
   0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(-4deg); }
-  75% { transform: rotate(4deg); }
+  25% { transform: rotate(-5deg); }
+  75% { transform: rotate(5deg); }
 }
 
-.aura-glow {
-  filter: drop-shadow(0 0 14px rgba(16, 185, 129, 0.6));
+/* Chief Backfire Victim (Lowest Marks) */
+.rank-victim {
+  border-color: rgba(239, 68, 68, 0.5);
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.12) 0%, rgba(14, 18, 32, 0.9) 100%);
+  box-shadow: 0 0 20px var(--accent-red-glow);
+  order: 3;
+}
+
+.rank-sub {
+  order: 1;
+}
+
+.burn-icon {
+  font-size: 1.5rem;
+  position: absolute;
+  top: -14px;
 }
 
 .podium-badge {
@@ -374,14 +390,15 @@ body {
   margin-bottom: 0.25rem;
 }
 
-.badge-burn {
-  background: var(--accent-red);
-  color: #fff;
-}
-
 .badge-aura {
   background: var(--accent-green);
   color: #0b0e17;
+  font-weight: 800;
+}
+
+.badge-burn {
+  background: var(--accent-red);
+  color: #fff;
   font-weight: 800;
 }
 
@@ -406,16 +423,12 @@ body {
   margin-top: 0.5rem;
 }
 
-.text-burn {
-  color: #f87171;
-}
-
-.text-negative {
-  color: #fb923c;
-}
-
 .text-aura {
   color: #34d399;
+}
+
+.text-burn {
+  color: #f87171;
 }
 
 /* ============================================================
@@ -516,13 +529,12 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
-/* High roast indicator border */
-.friend-card.heavily-roasted {
-  border-left: 4px solid var(--accent-red);
+.friend-card.card-top-roaster {
+  border-left: 4px solid var(--accent-green);
 }
 
-.friend-card.aura-master {
-  border-left: 4px solid var(--accent-green);
+.friend-card.card-backfire-victim {
+  border-left: 4px solid var(--accent-red);
 }
 
 .friend-left {
@@ -530,6 +542,7 @@ body {
   align-items: center;
   gap: 0.9rem;
   min-width: 0;
+  flex: 1;
 }
 
 .friend-rank-num {
@@ -551,12 +564,14 @@ body {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  gap: 0.15rem;
 }
 
 .friend-name-row {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .friend-name {
@@ -576,23 +591,38 @@ body {
   white-space: nowrap;
 }
 
-.friend-status {
-  font-size: 0.78rem;
+/* Latest Note Preview snippet */
+.friend-latest-note {
+  font-size: 0.75rem;
   color: var(--text-muted);
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 320px;
 }
 
-/* Center Points Counter */
+.note-tag-pos {
+  color: #34d399;
+  font-weight: 700;
+}
+
+.note-tag-neg {
+  color: #f87171;
+  font-weight: 700;
+}
+
+/* Marks Display Box */
 .friend-marks-box {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-width: 90px;
-  padding: 0.35rem 0.75rem;
-  background: rgba(0, 0, 0, 0.3);
+  min-width: 85px;
+  padding: 0.4rem 0.75rem;
+  background: rgba(0, 0, 0, 0.35);
   border-radius: var(--radius-sm);
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
@@ -623,20 +653,20 @@ body {
   margin-top: 0.2rem;
 }
 
-/* Right Actions */
+/* Action Buttons Container */
 .friend-actions {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
 }
 
-/* Primary Roast Button (-1 Mark) */
-.btn-roast {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+/* Award Roast Mark (+1) */
+.btn-hit {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: #fff;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  padding: 0.6rem 0.9rem;
+  padding: 0.6rem 0.85rem;
   border-radius: var(--radius-sm);
   border: none;
   cursor: pointer;
@@ -644,16 +674,34 @@ body {
   align-items: center;
   gap: 0.3rem;
   transition: var(--transition);
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.35);
+  box-shadow: 0 2px 8px var(--accent-green-glow);
 }
 
-.btn-roast:hover {
-  filter: brightness(1.1);
+.btn-hit:hover {
+  filter: brightness(1.12);
   transform: translateY(-1px);
 }
 
-.btn-roast:active {
-  transform: scale(0.95);
+/* Deduct Mark on Backfire (-1) */
+.btn-backfire {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: var(--transition);
+  box-shadow: 0 2px 8px var(--accent-red-glow);
+}
+
+.btn-backfire:hover {
+  filter: brightness(1.12);
+  transform: translateY(-1px);
 }
 
 .btn-quick {
@@ -685,7 +733,7 @@ body {
   color: var(--text-main);
 }
 
-/* Pulse animation when points change */
+/* Pulse animation */
 @keyframes pointPop {
   0% { transform: scale(1); }
   50% { transform: scale(1.35); color: #fff; }
@@ -721,7 +769,7 @@ body {
 
 .empty-state p {
   color: var(--text-muted);
-  max-width: 400px;
+  max-width: 420px;
   font-size: 0.9rem;
 }
 
@@ -741,7 +789,6 @@ body {
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  transition: opacity 0.2s ease;
 }
 
 .modal-overlay.hidden {
@@ -753,7 +800,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: var(--radius-lg);
   width: 100%;
-  max-width: 480px;
+  max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
@@ -763,7 +810,7 @@ body {
 }
 
 .modal-container.modal-large {
-  max-width: 650px;
+  max-width: 660px;
 }
 
 @keyframes modalSlideUp {
@@ -841,6 +888,120 @@ body {
   color: var(--text-dim);
 }
 
+/* Action Target Banner (Modal 2) */
+.action-target-card {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.action-target-card.type-add {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(14, 18, 32, 0.5) 100%);
+}
+
+.action-target-card.type-deduct {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(14, 18, 32, 0.5) 100%);
+}
+
+.target-avatar {
+  font-size: 2.2rem;
+  line-height: 1;
+}
+
+.target-info {
+  flex: 1;
+}
+
+.target-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.target-badge-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.action-amount-badge {
+  font-size: 1.35rem;
+  font-weight: 800;
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.type-add .action-amount-badge {
+  color: var(--accent-green);
+}
+
+.type-deduct .action-amount-badge {
+  color: var(--accent-red);
+}
+
+/* Points selector row pills */
+.points-selector-row {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.point-pill-radio {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: var(--transition);
+}
+
+.point-pill-radio input {
+  display: none;
+}
+
+.point-pill-radio.active {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: var(--text-main);
+  color: #fff;
+}
+
+/* Quick Notes suggestion pills */
+.quick-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.quick-note-pill {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.quick-note-pill:hover,
+.quick-note-pill.selected {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+}
+
 /* Avatar Picker Grid */
 .avatar-picker {
   display: grid;
@@ -876,74 +1037,7 @@ body {
   gap: 0.75rem;
 }
 
-/* Quick Pick Roast Reasons */
-.quick-reasons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-
-.quick-reason-pill {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--border-color);
-  color: var(--text-muted);
-  font-size: 0.75rem;
-  padding: 0.35rem 0.65rem;
-  border-radius: var(--radius-full);
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.quick-reason-pill:hover,
-.quick-reason-pill.selected {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: rgba(239, 68, 68, 0.5);
-  color: #fca5a5;
-}
-
-.points-selector {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.point-radio {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-color);
-  padding: 0.6rem 0.8rem;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-size: 0.8rem;
-  flex: 1;
-}
-
-.roast-target-preview {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  padding: 0.85rem;
-  border-radius: var(--radius-md);
-}
-
-.target-avatar {
-  font-size: 2.2rem;
-}
-
-.target-name {
-  font-weight: 700;
-  font-size: 1.1rem;
-}
-
-.target-sub {
-  font-size: 0.8rem;
-  color: #fca5a5;
-}
-
-/* Roast Feed Log */
+/* Feed List (Wall of Shame) */
 .feed-intro {
   font-size: 0.85rem;
   color: var(--text-muted);
@@ -953,7 +1047,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  max-height: 380px;
+  max-height: 400px;
   overflow-y: auto;
   padding-right: 0.3rem;
 }
@@ -966,6 +1060,14 @@ body {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   padding: 0.75rem;
+}
+
+.feed-item.feed-hit {
+  border-left: 3px solid var(--accent-green);
+}
+
+.feed-item.feed-backfire {
+  border-left: 3px solid var(--accent-red);
 }
 
 .feed-item-icon {
@@ -986,7 +1088,7 @@ body {
 
 .feed-victim {
   font-weight: 700;
-  color: var(--accent-fire);
+  color: #fff;
 }
 
 .feed-time {
@@ -1002,6 +1104,13 @@ body {
 .feed-pts-tag {
   font-weight: 800;
   font-size: 0.75rem;
+}
+
+.feed-pts-tag.pos {
+  color: var(--accent-green);
+}
+
+.feed-pts-tag.neg {
   color: var(--accent-red);
 }
 
@@ -1133,11 +1242,11 @@ body {
   to { transform: translateX(100%); opacity: 0; }
 }
 
-.toast.toast-roast {
+.toast.toast-backfire {
   border-left: 4px solid var(--accent-red);
 }
 
-.toast.toast-aura {
+.toast.toast-hit {
   border-left: 4px solid var(--accent-green);
 }
 
@@ -1154,11 +1263,11 @@ body {
     padding: 1rem;
   }
 
-  .sinhala-title {
-    font-size: 1.35rem;
+  .main-title {
+    font-size: 1.4rem;
   }
 
-  .english-title {
+  .sub-title {
     font-size: 0.65rem;
   }
 
@@ -1225,9 +1334,11 @@ body {
     border-top: 1px solid rgba(255, 255, 255, 0.05);
   }
 
-  .btn-roast {
+  .btn-hit, .btn-backfire {
     flex: 1;
     justify-content: center;
+    font-size: 0.75rem;
+    padding: 0.55rem 0.4rem;
   }
 
   .avatar-picker {
